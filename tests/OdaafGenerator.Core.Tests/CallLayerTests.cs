@@ -80,14 +80,13 @@ public class CallLayerTests
         var method = catalog.FindMethod("ExecuteWriteParamsToPcb");
         Assert.NotNull(method);
         var layer = CallLayerGraph.Expand(method, project.SourceRoot, catalog);
+        Assert.True(layer.Menu);
         Assert.Equal(PatternAPhase.Dispatch, Phase(layer, "GetFusionContextForSemiAuto"));
         Assert.Equal(PatternAPhase.Dispatch, Phase(layer, "ShowDialog"));
         Assert.Equal(PatternAPhase.Schedule, Phase(layer, "BeginSemiAutoWorkflow"));
         Assert.Equal(PatternAPhase.Execute, Phase(layer, "ApplySemiAutoSanitizeAndArchive"));
         Assert.Equal(PatternAPhase.Result, Phase(layer, "EndSemiAutoWorkflow"));
-        Assert.Contains(layer.Calls, call => call.Name == "Show" && call.Phase == PatternAPhase.Check);
-        Assert.Contains(layer.Calls, call => call.Name == "Show" && call.Phase == PatternAPhase.Result);
-        Assert.DoesNotContain(layer.Calls, call => call.Name is "ToList" or "OfType");
+        Assert.DoesNotContain(layer.Calls, call => call.Name is "Show" or "Warn" or "Info" or "Error" or "IsNullOrEmpty" or "ToList" or "OfType" or "Invoke" or "SemiAutoWorkflowLog");
     }
 
     [Fact]
@@ -131,18 +130,68 @@ public class CallLayerTests
                 "Host",
                 "Demo.Host");
             var layer = CallLayerGraph.Expand(method, root, catalog);
-            Assert.DoesNotContain(layer.Calls, call => call.Name == "ToList");
+            Assert.True(layer.Menu);
+            Assert.DoesNotContain(layer.Calls, call => call.Name is "ToList" or "IsNullOrEmpty" or "Warn" or "Show");
             Assert.Equal(PatternAPhase.Dispatch, Phase(layer, "GetFusionContextForSemiAuto"));
-            Assert.Equal(PatternAPhase.Check, Phase(layer, "IsNullOrEmpty"));
-            Assert.Equal(PatternAPhase.Check, Phase(layer, "Warn"));
             Assert.Equal(PatternAPhase.Dispatch, Phase(layer, "ShowDialog"));
             Assert.Equal(PatternAPhase.Schedule, Phase(layer, "BeginSemiAutoWorkflow"));
             Assert.Equal(PatternAPhase.Execute, Phase(layer, "ApplySemiAutoSanitizeAndArchive"));
             Assert.Equal(PatternAPhase.Result, Phase(layer, "EndSemiAutoWorkflow"));
-            Assert.Contains(layer.Calls, call => call.Name == "Show" && call.Phase == PatternAPhase.Check);
-            Assert.Contains(layer.Calls, call => call.Name == "Show" && call.Phase == PatternAPhase.Result);
-            var (cards, _) = layer.Cards(new LayoutFile());
-            Assert.Equal(PatternA.Title(PatternAPhase.Execute), cards.Single(card => card.Name == "ApplySemiAutoSanitizeAndArchive").StepLabel);
+            var (cards, edges) = layer.Cards(new LayoutFile());
+            var work = cards.Single(card => card.Name == "ApplySemiAutoSanitizeAndArchive");
+            Assert.Equal("执行", work.StepLabel);
+            Assert.True(work.MainFlow);
+            Assert.False(cards.Single(card => card.Name == "ShowDialog").MainFlow);
+            Assert.Contains(edges, edge => edge.To == work.SyntaxPath);
+            Assert.DoesNotContain(edges, edge => edge.To.Contains("ShowDialog", StringComparison.Ordinal));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void PatternB_KeepsExecuteAsMainFlow()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "og-pattern-b-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var file = Path.Combine(root, "Host.cs");
+        File.WriteAllText(file,
+            """
+            namespace Demo;
+            public class Host
+            {
+                public void Place(string input)
+                {
+                    if (input == null) { Reject(); return; }
+                    Logger.Info("x");
+                    Build();
+                    if (!ok) { Fail(); return; }
+                }
+                public void Reject() {}
+                public void Build() {}
+                public void Fail() {}
+                bool ok;
+            }
+            """);
+        try
+        {
+            var catalog = Catalog.Create(["BHEditor"], [], []);
+            var method = new CodeSymbol(
+                "BHEditor", file, 4, "method", "Demo.Host.Place", "public void Place(string input)",
+                4, 12, "Demo", "Host", "Demo.Host");
+            var layer = CallLayerGraph.Expand(method, root, catalog);
+            Assert.False(layer.Menu);
+            Assert.DoesNotContain(layer.Calls, call => call.Name == "Info");
+            Assert.Equal(PatternAPhase.Check, Phase(layer, "Reject"));
+            Assert.Equal(PatternAPhase.Execute, Phase(layer, "Build"));
+            Assert.Equal(PatternAPhase.Result, Phase(layer, "Fail"));
+            var (cards, edges) = layer.Cards(new LayoutFile());
+            Assert.True(cards.Single(card => card.Name == "Build").MainFlow);
+            Assert.False(cards.Single(card => card.Name == "Reject").MainFlow);
+            Assert.False(cards.Single(card => card.Name == "Fail").MainFlow);
+            Assert.Equal(["Build"], edges.Select(edge => cards.Single(card => card.SyntaxPath == edge.To).Name));
         }
         finally
         {

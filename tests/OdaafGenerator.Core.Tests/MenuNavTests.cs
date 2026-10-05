@@ -79,15 +79,15 @@ public class MenuNavTests
                     Row(file, 6, 2, "method", "Demo.Host.Nested", "public void Nested()", 11, 11)
                 ]);
             var node = new NavNode("ExecuteImportXmlData", NavNode.Function, "ExecuteImportXmlData",
-                "Demo.Host.ExecuteImportXmlData", catalog.Find("Demo.Host.ExecuteImportXmlData"));
+                "Demo.Host.ExecuteImportXmlData", catalog.Find("Demo.Host.ExecuteImportXmlData"), mainFlow: true);
             node.Children.Add(NavNode.Placeholder());
             MenuNavTree.Expand(node, catalog, root);
-            Assert.Equal(Enum.GetValues<PatternAPhase>().Select(PatternA.Title), node.Children.Select(child => child.Title));
-            var execute = Assert.Single(node.Children, child => child.Kind == NavNode.Phase && child.Title.StartsWith("4"));
+            var execute = Assert.Single(node.Children);
+            Assert.Equal("执行", execute.Title);
+            Assert.True(execute.MainFlow);
             Assert.Equal(["Import", "Log"], execute.Children.Select(child => child.Title));
+            Assert.All(execute.Children, child => Assert.True(child.MainFlow));
             Assert.DoesNotContain(execute.Children, child => child.Title == "Nested");
-            var schedule = Assert.Single(node.Children, child => child.Title.StartsWith("3"));
-            Assert.Equal("顺序执行，无排程器", Assert.Single(schedule.Children).Title);
             Assert.True(node.CallsLoaded);
         }
         finally

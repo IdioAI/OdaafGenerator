@@ -11,18 +11,27 @@ public enum PatternAPhase
 
 public static class PatternA
 {
-    public static string Title(PatternAPhase phase) => phase switch
+    public static string Title(PatternAPhase phase, bool menu)
     {
-        PatternAPhase.Dispatch => "1 消分派与跳转",
-        PatternAPhase.Check => "2 条件检查",
-        PatternAPhase.Schedule => "3 排程",
-        PatternAPhase.Result => "5 结果检查与显示",
-        _ => "4 执行"
-    };
+        if (!menu)
+        {
+            return phase switch
+            {
+                PatternAPhase.Check => "输入参数检查",
+                PatternAPhase.Result => "结果检查",
+                _ => "执行"
+            };
+        }
 
-    public static bool IsSyntaxNoise(string name) =>
-        name is "ToList" or "OfType" or "GetFileName" or "GetDirectoryName"
-            or "GetValue" or "TryGetValue" or "Equals" or "Start" or "Add";
+        return phase switch
+        {
+            PatternAPhase.Dispatch => "消分派与跳转",
+            PatternAPhase.Check => "条件检查",
+            PatternAPhase.Schedule => "排程",
+            PatternAPhase.Result => "结果检查与显示",
+            _ => "执行"
+        };
+    }
 
     public static PatternAPhase Classify(string name, int index, int dialogIndex)
     {

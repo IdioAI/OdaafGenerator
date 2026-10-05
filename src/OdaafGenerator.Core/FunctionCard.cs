@@ -24,6 +24,7 @@ public sealed class FunctionCard : INotifyPropertyChanged
     public string? Note { get; init; }
     public bool OnCanvas { get; init; }
     public bool OpensZExtract { get; init; }
+    public bool MainFlow { get; init; } = true;
 
     public double X
     {
@@ -75,12 +76,12 @@ public sealed class FunctionCard : INotifyPropertyChanged
         return card;
     }
 
-    public static FunctionCard OffCanvas(CodeSymbol symbol, LayoutNode? placed, bool onCanvas = false) =>
+    public static FunctionCard OffCanvas(CodeSymbol symbol, LayoutNode? placed, bool onCanvas = false, string? stepLabel = null) =>
         new()
         {
             SyntaxPath = symbol.SyntaxPath,
             Name = symbol.SimpleName,
-            StepLabel = symbol.Kind == "property" ? "属性" : "函数",
+            StepLabel = stepLabel ?? (symbol.Kind == "property" ? "属性" : "函数"),
             Project = symbol.Project,
             Signature = symbol.Signature,
             FilePath = symbol.FilePath,

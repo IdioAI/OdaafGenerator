@@ -17,49 +17,26 @@ public sealed class CallLayerGraph
 {
     public required CodeSymbol Caller { get; init; }
     public required IReadOnlyList<DirectCall> Calls { get; init; }
+    public bool Menu { get; init; }
 
     public (IReadOnlyList<FunctionCard> Cards, IReadOnlyList<GraphEdge> Edges) Cards(LayoutFile layout)
     {
         var placedCaller = layout.Find(Caller.SyntaxPath);
-        var caller = FunctionCard.OffCanvas(Caller, placedCaller, onCanvas: true);
+        var caller = FunctionCard.OffCanvas(Caller, placedCaller, onCanvas: true, stepLabel: "执行");
         caller.X = placedCaller?.X ?? 24;
         caller.Y = placedCaller?.Y ?? 36;
         var cards = new List<FunctionCard> { caller };
         var edges = new List<GraphEdge>();
-        var lanes = Calls
-            .Where(call => !PatternA.IsSyntaxNoise(call.Name))
-            .GroupBy(call => call.Phase)
-            .ToDictionary(group => group.Key, group => group.ToList());
+        var lanes = Calls.GroupBy(call => call.Phase).ToDictionary(group => group.Key, group => group.ToList());
+        if (lanes.TryGetValue(PatternAPhase.Execute, out var execute))
+            AddLane(cards, edges, caller, execute, PatternAPhase.Execute, 280, main: true, Menu, layout);
+        var column = 560;
         foreach (var phase in Enum.GetValues<PatternAPhase>())
         {
-            if (!lanes.TryGetValue(phase, out var lane))
+            if (phase == PatternAPhase.Execute || !lanes.TryGetValue(phase, out var lane))
                 continue;
-            var column = 280 + (int)phase * 230;
-            for (var i = 0; i < lane.Count; i++)
-            {
-                var call = lane[i];
-                var path = (call.SyntaxPath ?? Caller.SyntaxPath + "." + call.Name) + "@" + phase;
-                var placed = layout.Find(path);
-                cards.Add(new FunctionCard
-                {
-                    SyntaxPath = path,
-                    Name = call.Name,
-                    StepLabel = PatternA.Title(phase),
-                    Project = Caller.Project,
-                    Signature = call.Signature ?? "",
-                    FilePath = call.FilePath ?? "",
-                    StartLine = call.StartLine,
-                    EndLine = call.StartLine,
-                    Materials = SignatureParser.Parameters(call.Signature),
-                    Note = call.Resolved ? null : "这一层只列出名字，索引里没有对上。",
-                    OnCanvas = true,
-                    X = column,
-                    Y = 36 + i * 96,
-                    Formal = placed?.Formal ?? "",
-                    Final = placed?.Final ?? ""
-                });
-                edges.Add(new GraphEdge(caller.SyntaxPath, path));
-            }
+            AddLane(cards, edges, caller, lane, phase, column, main: false, Menu, layout);
+            column += 230;
         }
 
         return (cards, edges);
@@ -67,32 +44,61 @@ public sealed class CallLayerGraph
 
     public static CallLayerGraph Expand(CodeSymbol caller, string sourceRoot, Catalog catalog)
     {
-        var names = ReadInvocations(caller, sourceRoot);
-        var dialogIndex = -1;
-        for (var i = 0; i < names.Count; i++)
-        {
-            if (names[i] == "ShowDialog")
-            {
-                dialogIndex = i;
-                break;
-            }
-        }
-
+        var menu = FrameworkCalls.IsMenuHandler(caller.SimpleName);
+        var sites = ReadSites(caller, sourceRoot, menu);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var calls = new List<DirectCall>();
-        for (var index = 0; index < names.Count; index++)
+        foreach (var site in sites)
         {
-            var name = names[index];
-            var phase = PatternA.Classify(name, index, dialogIndex);
-            if (!seen.Add(phase + ":" + name) || PatternA.IsSyntaxNoise(name))
+            var symbol = catalog.ResolveCall(site.Name, caller.TypeSyntaxPath);
+            if (FrameworkCalls.Exclude(site.Name, site.Receiver, symbol) || !seen.Add(site.Phase + ":" + site.Name))
                 continue;
-            var symbol = catalog.ResolveCall(name, caller.TypeSyntaxPath);
             calls.Add(symbol is null
-                ? new DirectCall(name, null, null, null, 0, false, phase)
-                : new DirectCall(symbol.SimpleName, symbol.SyntaxPath, symbol.Signature, symbol.FilePath, symbol.StartLine, true, phase));
+                ? new DirectCall(site.Name, null, null, null, 0, false, site.Phase)
+                : new DirectCall(symbol.SimpleName, symbol.SyntaxPath, symbol.Signature, symbol.FilePath, symbol.StartLine, true, site.Phase));
         }
 
-        return new CallLayerGraph { Caller = caller, Calls = calls };
+        return new CallLayerGraph { Caller = caller, Calls = calls, Menu = menu };
+    }
+
+    private static void AddLane(
+        List<FunctionCard> cards,
+        List<GraphEdge> edges,
+        FunctionCard caller,
+        IReadOnlyList<DirectCall> lane,
+        PatternAPhase phase,
+        int column,
+        bool main,
+        bool menu,
+        LayoutFile layout)
+    {
+        for (var i = 0; i < lane.Count; i++)
+        {
+            var call = lane[i];
+            var path = (call.SyntaxPath ?? caller.SyntaxPath + "." + call.Name) + "@" + phase;
+            var placed = layout.Find(path);
+            cards.Add(new FunctionCard
+            {
+                SyntaxPath = path,
+                Name = call.Name,
+                StepLabel = PatternA.Title(phase, menu),
+                Project = caller.Project,
+                Signature = call.Signature ?? "",
+                FilePath = call.FilePath ?? "",
+                StartLine = call.StartLine,
+                EndLine = call.StartLine,
+                Materials = SignatureParser.Parameters(call.Signature),
+                Note = call.Resolved ? null : "这一层只列出名字，索引里没有对上。",
+                OnCanvas = true,
+                MainFlow = main,
+                X = column,
+                Y = 36 + i * 96,
+                Formal = placed?.Formal ?? "",
+                Final = placed?.Final ?? ""
+            });
+            if (main)
+                edges.Add(new GraphEdge(caller.SyntaxPath, path));
+        }
     }
 
     public static string? ResolveSource(string sourceRoot, string filePath)
@@ -105,7 +111,9 @@ public sealed class CallLayerGraph
         return File.Exists(combined) ? combined : null;
     }
 
-    private static IReadOnlyList<string> ReadInvocations(CodeSymbol caller, string sourceRoot)
+    private readonly record struct CallSite(string Name, string? Receiver, PatternAPhase Phase);
+
+    private static List<CallSite> ReadSites(CodeSymbol caller, string sourceRoot, bool menu)
     {
         var path = ResolveSource(sourceRoot, caller.FilePath);
         if (path is null)
@@ -129,12 +137,32 @@ public sealed class CallLayerGraph
         SyntaxNode? node = method.Body ?? (SyntaxNode?)method.ExpressionBody;
         if (node is null)
             return [];
-        return node.DescendantNodes()
-            .OfType<InvocationExpressionSyntax>()
-            .Select(NameOf)
-            .Where(name => !string.IsNullOrEmpty(name) && name != caller.SimpleName)
-            .Cast<string>()
-            .ToList();
+
+        var invocations = node.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+        var dialogIndex = -1;
+        for (var i = 0; i < invocations.Count; i++)
+        {
+            if (NameOf(invocations[i]) == "ShowDialog")
+            {
+                dialogIndex = i;
+                break;
+            }
+        }
+
+        var sites = new List<CallSite>();
+        for (var index = 0; index < invocations.Count; index++)
+        {
+            var invocation = invocations[index];
+            var name = NameOf(invocation);
+            if (string.IsNullOrEmpty(name) || name == caller.SimpleName)
+                continue;
+            var phase = menu
+                ? PatternA.Classify(name, index, dialogIndex)
+                : PatternB.Region(invocation, method.Body);
+            sites.Add(new CallSite(name, ReceiverOf(invocation), phase));
+        }
+
+        return sites;
     }
 
     private static string? NameOf(InvocationExpressionSyntax invocation) =>
@@ -143,6 +171,22 @@ public sealed class CallLayerGraph
             IdentifierNameSyntax name => name.Identifier.Text,
             MemberAccessExpressionSyntax member => member.Name.Identifier.Text,
             MemberBindingExpressionSyntax bound => bound.Name.Identifier.Text,
+            _ => null
+        };
+
+    private static string? ReceiverOf(InvocationExpressionSyntax invocation) =>
+        invocation.Expression switch
+        {
+            MemberAccessExpressionSyntax member => ReceiverText(member.Expression),
+            _ => null
+        };
+
+    private static string? ReceiverText(ExpressionSyntax expression) =>
+        expression switch
+        {
+            IdentifierNameSyntax name => name.Identifier.Text,
+            MemberAccessExpressionSyntax member => member.Name.Identifier.Text,
+            GenericNameSyntax generic => generic.Identifier.Text,
             _ => null
         };
 }

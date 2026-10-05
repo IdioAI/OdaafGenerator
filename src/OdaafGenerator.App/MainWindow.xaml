@@ -77,7 +77,18 @@
               <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type core:NavNode}" ItemsSource="{Binding Children}">
                   <StackPanel Orientation="Horizontal" Margin="0,2">
-                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Title}">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                          <Setter Property="FontWeight" Value="Normal"/>
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding MainFlow}" Value="True">
+                              <Setter Property="FontWeight" Value="Bold"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
                     <TextBlock Margin="8,0,0,0" Foreground="#667085" Text="{Binding Hint}"/>
                   </StackPanel>
                 </HierarchicalDataTemplate>

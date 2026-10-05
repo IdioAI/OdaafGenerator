@@ -308,6 +308,34 @@ public sealed class MainViewModel : INotifyPropertyChanged
         if (node.Kind is NavNode.More or NavNode.Empty)
             return;
         SelectedNav = node;
+        if (node.Kind == NavNode.Function && !node.MainFlow)
+        {
+            NavCards =
+            [
+                new FunctionCard
+                {
+                    SyntaxPath = node.SyntaxPath ?? node.Title,
+                    Name = node.Title,
+                    StepLabel = "修饰",
+                    Project = node.Symbol?.Project ?? "",
+                    Signature = node.Symbol?.Signature ?? "",
+                    FilePath = node.Symbol?.FilePath ?? "",
+                    StartLine = node.Symbol?.StartLine ?? 0,
+                    EndLine = node.Symbol?.EndLine ?? 0,
+                    Materials = SignatureParser.Parameters(node.Symbol?.Signature),
+                    OnCanvas = true,
+                    MainFlow = false,
+                    X = 24,
+                    Y = 36
+                }
+            ];
+            NavEdges = [];
+            SelectedCard = NavCards[0];
+            Status = $"{node.Title} 是修饰，不进入主流程。";
+            RefreshLine();
+            return;
+        }
+
         if (node.Kind == NavNode.Phase)
         {
             var functions = node.Children.Where(child => child.Kind == NavNode.Function).ToList();
@@ -323,14 +351,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 EndLine = item.Symbol?.EndLine ?? 0,
                 Materials = SignatureParser.Parameters(item.Symbol?.Signature),
                 OnCanvas = true,
+                MainFlow = node.MainFlow,
                 X = 24,
                 Y = 36 + index * 96
             }).ToList();
             NavEdges = [];
             SelectedCard = NavCards.FirstOrDefault();
-            Status = functions.Count == 0
-                ? $"{node.Title}。半自动这里按源码顺序往下走，没有排程器。"
-                : $"{node.Title}：{functions.Count} 个函数。";
+            Status = node.MainFlow
+                ? $"{node.Title}：主流程 {functions.Count} 个函数。"
+                : $"{node.Title}：修饰 {functions.Count} 个函数，不进入主流程。";
             RefreshLine();
             return;
         }
@@ -350,6 +379,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 EndLine = 0,
                 Materials = [],
                 OnCanvas = true,
+                MainFlow = false,
                 X = 24,
                 Y = 36 + index * 96
             }).ToList();
@@ -376,7 +406,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
         NavCards = graph.Cards;
         NavEdges = graph.Edges;
         SelectedCard = graph.Cards.FirstOrDefault();
-        Status = $"{symbol.SimpleName} 按模式A分成五段。半自动的排程只是顺序标记。";
+        Status = layer.Menu
+            ? $"{symbol.SimpleName} 模式A。主流程只画执行，空段不显示。"
+            : $"{symbol.SimpleName} 模式B。主流程只画执行，空段不显示。";
         RefreshLine();
     }
 

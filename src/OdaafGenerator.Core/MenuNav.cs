@@ -17,13 +17,20 @@ public sealed class NavNode
     public const string Empty = "empty";
     public const string Phase = "phase";
 
-    public NavNode(string title, string kind, string? methodName = null, string? syntaxPath = null, CodeSymbol? symbol = null)
+    public NavNode(
+        string title,
+        string kind,
+        string? methodName = null,
+        string? syntaxPath = null,
+        CodeSymbol? symbol = null,
+        bool mainFlow = false)
     {
         Title = title;
         Kind = kind;
         MethodName = methodName;
         SyntaxPath = syntaxPath ?? symbol?.SyntaxPath;
         Symbol = symbol;
+        MainFlow = mainFlow;
     }
 
     public string Title { get; }
@@ -31,6 +38,7 @@ public sealed class NavNode
     public string? MethodName { get; }
     public string? SyntaxPath { get; }
     public CodeSymbol? Symbol { get; }
+    public bool MainFlow { get; }
     public ObservableCollection<NavNode> Children { get; } = [];
     public bool CallsLoaded { get; private set; }
 
@@ -38,13 +46,15 @@ public sealed class NavNode
     {
         Group => "分组",
         Menu => "菜单",
-        Phase => "模式A",
+        Phase when MainFlow => "主流程",
+        Phase => "修饰",
+        Function when !MainFlow => "修饰",
         Function => Symbol is null ? "未对上" : "函数",
         Empty => "",
         _ => ""
     };
 
-    public bool CanExpandCalls => Kind == Function && Symbol is not null && !CallsLoaded;
+    public bool CanExpandCalls => Kind == Function && MainFlow && Symbol is not null && !CallsLoaded;
 
     public void MarkLoaded() => CallsLoaded = true;
 
@@ -94,7 +104,8 @@ public static class MenuNavTree
             NavNode.Function,
             entry.MethodName,
             symbol?.SyntaxPath ?? "BHEditor.ViewModels.MainWindowViewModel." + entry.MethodName,
-            symbol);
+            symbol,
+            mainFlow: true);
         if (symbol is not null)
             handler.Children.Add(NavNode.Placeholder());
         menu.Children.Add(handler);
@@ -109,24 +120,18 @@ public static class MenuNavTree
         var layer = CallLayerGraph.Expand(node.Symbol, sourceRoot, catalog);
         foreach (var phase in Enum.GetValues<PatternAPhase>())
         {
-            var bucket = new NavNode(PatternA.Title(phase), NavNode.Phase);
             var calls = layer.Calls.Where(call => call.Phase == phase).ToList();
             if (calls.Count == 0)
+                continue;
+            var main = phase == PatternAPhase.Execute;
+            var bucket = new NavNode(PatternA.Title(phase, layer.Menu), NavNode.Phase, mainFlow: main);
+            foreach (var call in calls)
             {
-                bucket.Children.Add(new NavNode(
-                    phase == PatternAPhase.Schedule ? "顺序执行，无排程器" : "（本步无调用）",
-                    NavNode.Empty));
-            }
-            else
-            {
-                foreach (var call in calls)
-                {
-                    var symbol = call.SyntaxPath is null ? null : catalog.Find(call.SyntaxPath);
-                    var child = new NavNode(call.Name, NavNode.Function, call.Name, call.SyntaxPath, symbol);
-                    if (symbol is not null)
-                        child.Children.Add(NavNode.Placeholder());
-                    bucket.Children.Add(child);
-                }
+                var symbol = call.SyntaxPath is null ? null : catalog.Find(call.SyntaxPath);
+                var child = new NavNode(call.Name, NavNode.Function, call.Name, call.SyntaxPath, symbol, mainFlow: main);
+                if (main && symbol is not null)
+                    child.Children.Add(NavNode.Placeholder());
+                bucket.Children.Add(child);
             }
 
             node.Children.Add(bucket);

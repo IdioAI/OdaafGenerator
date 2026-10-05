@@ -119,7 +119,10 @@ public sealed class FlowCanvas : Canvas
         {
             Text = card.Name,
             FontSize = 14,
-            FontWeight = FontWeights.SemiBold,
+            FontWeight = card.MainFlow ? FontWeights.Bold : FontWeights.Normal,
+            Foreground = card.MainFlow
+                ? Brushes.Black
+                : new SolidColorBrush(Color.FromRgb(0x66, 0x70, 0x85)),
             TextTrimming = TextTrimming.CharacterEllipsis
         };
         var project = new TextBlock
