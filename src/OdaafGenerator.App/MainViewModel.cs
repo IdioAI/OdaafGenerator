@@ -40,6 +40,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private IReadOnlyList<FunctionCard> _zCards = [];
     private IReadOnlyList<GraphEdge> _zEdges = [];
     private IReadOnlyList<WorkspaceView> _contextViews = [];
+    private IReadOnlyList<NavNode> _navRoots = [];
+    private IReadOnlyList<FunctionCard> _navCards = [];
+    private IReadOnlyList<GraphEdge> _navEdges = [];
+    private NavNode? _selectedNav;
     private WorkspaceDocument? _activeDocument;
     private WorkspaceView? _selectedView;
 
@@ -134,6 +138,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 return;
             OnPropertyChanged(nameof(IsIndexContext));
             OnPropertyChanged(nameof(IsOdaafContext));
+            OnPropertyChanged(nameof(IsFileNavContext));
             OnPropertyChanged(nameof(ContextName));
             RefreshContextViews();
             RefreshLine();
@@ -142,7 +147,37 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public bool IsIndexContext => ContextId == IndexContext.Id;
     public bool IsOdaafContext => ContextId == OdaafFileContext.Id;
-    public string ContextName => IsIndexContext ? "解析入库" : "ODAAF";
+    public bool IsFileNavContext => ContextId == FileNavContext.Id;
+    public string ContextName => ContextId switch
+    {
+        IndexContext.Id => "解析入库",
+        FileNavContext.Id => FileNavContext.Name,
+        _ => "ODAAF"
+    };
+
+    public IReadOnlyList<NavNode> NavRoots
+    {
+        get => _navRoots;
+        private set => Set(ref _navRoots, value);
+    }
+
+    public IReadOnlyList<FunctionCard> NavCards
+    {
+        get => _navCards;
+        private set => Set(ref _navCards, value);
+    }
+
+    public IReadOnlyList<GraphEdge> NavEdges
+    {
+        get => _navEdges;
+        private set => Set(ref _navEdges, value);
+    }
+
+    public NavNode? SelectedNav
+    {
+        get => _selectedNav;
+        private set => Set(ref _selectedNav, value);
+    }
 
     public IReadOnlyList<WorkspaceView> ContextViews
     {
@@ -216,10 +251,18 @@ public sealed class MainViewModel : INotifyPropertyChanged
             (_menuCards, _menuEdges) = FileMenu.Build(_catalog, _layout);
             OnPropertyChanged(nameof(MenuCards));
             ProjectIndex = ProjectIndexInfo.From(project, LayoutPath, projects.Count, rows.Count);
+            NavRoots = MenuNavTree.Build(_catalog);
             Documents.Clear();
-            ContextId = project.DefaultContextId == IndexContext.Id ? IndexContext.Id : OdaafFileContext.Id;
+            ContextId = project.DefaultContextId switch
+            {
+                IndexContext.Id => IndexContext.Id,
+                FileNavContext.Id => FileNavContext.Id,
+                _ => OdaafFileContext.Id
+            };
             OpenDefaults();
-            Status = $"{project.Name}。项目 {projects.Count} 个，焦点声明 {rows.Count} 条，类 { _scatter.Types.Count} 个，簇 {_scatter.Clusters.Count} 个。";
+            Status = IsFileNavContext
+                ? $"{project.Name}。左边从文件菜单展开处理函数，右边画这一层的流程图。"
+                : $"{project.Name}。项目 {projects.Count} 个，焦点声明 {rows.Count} 条。";
         }
         catch (Exception ex)
         {
@@ -231,6 +274,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
             _menuCards = [];
             _zCards = [];
             ProjectIndex = null;
+            NavRoots = [];
+            NavCards = [];
+            NavEdges = [];
+            SelectedNav = null;
             Documents.Clear();
             SelectedCard = null;
             ActiveDocument = null;
@@ -244,6 +291,94 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public void ShowIndex() => SwitchContext(IndexContext.Id);
 
     public void ShowOdaaf() => SwitchContext(OdaafFileContext.Id);
+
+    public void ShowFileNav() => SwitchContext(FileNavContext.Id);
+
+    public void ExpandNav(NavNode? node)
+    {
+        if (node is null || _catalog is null || _project is null)
+            return;
+        MenuNavTree.Expand(node, _catalog, _project.SourceRoot);
+    }
+
+    public void SelectNav(NavNode? node)
+    {
+        if (node is null || _catalog is null || _layout is null || _project is null)
+            return;
+        if (node.Kind is NavNode.More or NavNode.Empty)
+            return;
+        SelectedNav = node;
+        if (node.Kind == NavNode.Phase)
+        {
+            var functions = node.Children.Where(child => child.Kind == NavNode.Function).ToList();
+            NavCards = functions.Select((item, index) => new FunctionCard
+            {
+                SyntaxPath = item.SyntaxPath ?? item.Title,
+                Name = item.Title,
+                StepLabel = node.Title,
+                Project = item.Symbol?.Project ?? "",
+                Signature = item.Symbol?.Signature ?? "",
+                FilePath = item.Symbol?.FilePath ?? "",
+                StartLine = item.Symbol?.StartLine ?? 0,
+                EndLine = item.Symbol?.EndLine ?? 0,
+                Materials = SignatureParser.Parameters(item.Symbol?.Signature),
+                OnCanvas = true,
+                X = 24,
+                Y = 36 + index * 96
+            }).ToList();
+            NavEdges = [];
+            SelectedCard = NavCards.FirstOrDefault();
+            Status = functions.Count == 0
+                ? $"{node.Title}。半自动这里按源码顺序往下走，没有排程器。"
+                : $"{node.Title}：{functions.Count} 个函数。";
+            RefreshLine();
+            return;
+        }
+
+        if (node.Kind == NavNode.Group || (node.Kind == NavNode.Menu && node.MethodName is null))
+        {
+            var items = node.Children.Where(child => child.Kind == NavNode.Menu && child.MethodName is not null).ToList();
+            NavCards = items.Select((item, index) => new FunctionCard
+            {
+                SyntaxPath = item.Children.FirstOrDefault()?.SyntaxPath ?? item.Title,
+                Name = item.Title,
+                StepLabel = node.Title,
+                Project = "",
+                Signature = item.MethodName ?? "",
+                FilePath = "",
+                StartLine = 0,
+                EndLine = 0,
+                Materials = [],
+                OnCanvas = true,
+                X = 24,
+                Y = 36 + index * 96
+            }).ToList();
+            NavEdges = [];
+            SelectedCard = NavCards.FirstOrDefault();
+            Status = $"{node.Title}：{items.Count} 个菜单项。点进去看处理函数。";
+            RefreshLine();
+            return;
+        }
+
+        var symbol = node.Symbol ?? (node.MethodName is null ? null : _catalog.FindMethod(node.MethodName));
+        if (symbol is null)
+        {
+            NavCards = [];
+            NavEdges = [];
+            SelectedCard = null;
+            Status = $"{node.Title} 没有对上处理函数。";
+            RefreshLine();
+            return;
+        }
+
+        var layer = CallLayerGraph.Expand(symbol, _project.SourceRoot, _catalog);
+        var graph = layer.Cards(_layout);
+        NavCards = graph.Cards;
+        NavEdges = graph.Edges;
+        SelectedCard = graph.Cards.FirstOrDefault();
+        Status = $"{symbol.SimpleName} 按模式A分成五段。半自动的排程只是顺序标记。";
+        RefreshLine();
+    }
 
     public void Navigate(string viewId, string? focusPath = null)
     {
@@ -385,6 +520,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private void SwitchContext(string contextId)
     {
         ContextId = contextId;
+        if (IsFileNavContext)
+        {
+            var start = MenuNavTree.FindHandler(NavRoots, FileMenu.ImportXmlMethod)
+                ?? NavRoots.SelectMany(group => group.Children).SelectMany(menu => menu.Children).FirstOrDefault();
+            SelectNav(start);
+            Status = "文件菜单。左边展开菜单到处理函数，右边是这一层的流程图。";
+            return;
+        }
+
         var current = Documents.LastOrDefault(document => document.ContextId == contextId);
         if (current is not null)
             ActiveDocument = current;
@@ -396,17 +540,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private void OpenDefaults()
     {
         RefreshContextViews();
+        if (IsFileNavContext)
+        {
+            var start = MenuNavTree.FindHandler(NavRoots, FileMenu.ImportXmlMethod)
+                ?? NavRoots.SelectMany(group => group.Children).SelectMany(menu => menu.Children).FirstOrDefault();
+            SelectNav(start);
+            return;
+        }
+
         Navigate(ViewIds.ProjectIndex);
-        if (IsOdaafContext)
-        {
-            Navigate(ViewIds.FileMenu);
-            Navigate(ViewIds.ProjectIndex);
-        }
-        else
-        {
-            Navigate(ViewIds.IndexBrowse);
-            Navigate(ViewIds.ProjectIndex);
-        }
     }
 
     private WorkspaceDocument? CreateDocument(string viewId, string? focusPath)
@@ -505,7 +647,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private void RefreshLine()
     {
-        var view = ActiveDocument?.Title ?? "无文档";
+        var view = IsFileNavContext ? SelectedNav?.Title ?? "点左边的菜单" : ActiveDocument?.Title ?? "无文档";
         var name = _project?.Name ?? "未打开";
         ContextLine = $"{ContextName}  ·  {view}  ·  {name}";
     }

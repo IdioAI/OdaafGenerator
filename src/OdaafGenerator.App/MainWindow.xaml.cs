@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Win32;
 using OdaafGenerator.Core;
 
@@ -12,7 +13,22 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = _model;
+        NavFlow.CardChosen += (_, card) => _model.SelectCard(card);
+        NavFlow.DragCompleted += (_, _) => _model.SaveLayout();
+        _model.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName is nameof(MainViewModel.NavCards) or nameof(MainViewModel.NavEdges))
+            {
+                NavFlow.Cards = _model.NavCards;
+                NavFlow.Edges = _model.NavEdges;
+            }
+
+            if (args.PropertyName == nameof(MainViewModel.SelectedCard) && _model.IsFileNavContext)
+                NavFlow.SelectedSyntaxPath = _model.SelectedCard?.SyntaxPath;
+        };
         _model.Load();
+        NavFlow.Cards = _model.NavCards;
+        NavFlow.Edges = _model.NavEdges;
     }
 
     private void Load_Click(object sender, RoutedEventArgs e) => _model.Load();
@@ -37,6 +53,8 @@ public partial class MainWindow : Window
 
     private void ShowOdaaf_Click(object sender, RoutedEventArgs e) => _model.ShowOdaaf();
 
+    private void ShowFileNav_Click(object sender, RoutedEventArgs e) => _model.ShowFileNav();
+
     private void ViewProject_Click(object sender, RoutedEventArgs e) => _model.Navigate(ViewIds.ProjectIndex);
 
     private void ViewBrowse_Click(object sender, RoutedEventArgs e) => _model.Navigate(ViewIds.IndexBrowse);
@@ -50,4 +68,17 @@ public partial class MainWindow : Window
     private void ViewLayer_Click(object sender, RoutedEventArgs e) => _model.Navigate(ViewIds.FunctionLayer);
 
     private void Cause_LostFocus(object sender, RoutedEventArgs e) => _model.SaveLayout();
+
+    private void Nav_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        if (e.NewValue is NavNode node)
+            _model.SelectNav(node);
+    }
+
+    private void Nav_Expanded(object sender, RoutedEventArgs e)
+    {
+        if (sender is TreeViewItem { DataContext: NavNode node })
+            _model.ExpandNav(node);
+        e.Handled = true;
+    }
 }

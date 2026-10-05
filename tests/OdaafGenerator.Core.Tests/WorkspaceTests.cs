@@ -31,7 +31,8 @@ public class WorkspaceTests
         var info = ProjectIndexInfo.From(project, Path.Combine(Path.GetTempPath(), "og-layout.json"), 50, 100);
 
         Assert.Equal(project.Name, info.Name);
-        Assert.Equal(OdaafFileContext.Id, info.DefaultContextId);
+        Assert.Equal(FileNavContext.Id, info.DefaultContextId);
+        Assert.Contains(info.Contexts, context => context.Id == FileNavContext.Id);
         Assert.Contains(info.Files, file => file.Role == "工程索引" && file.Kind == "输入" && file.Exists);
         Assert.Contains(info.Files, file => file.Role == "代码索引数据库" && file.Exists);
         Assert.Contains(info.Files, file => file.Role == "源码解决方案" && file.Exists);

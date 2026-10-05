@@ -23,7 +23,8 @@ public static class WorkspaceViews
         new(ViewIds.FileMenu, "文件菜单", OdaafFileContext.Id),
         new(ViewIds.ZExtract, "Z 抽出", OdaafFileContext.Id),
         new(ViewIds.ClassScatter, "类散图", OdaafFileContext.Id),
-        new(ViewIds.FunctionLayer, "函数层", OdaafFileContext.Id)
+        new(ViewIds.FunctionLayer, "函数层", OdaafFileContext.Id),
+        new(ViewIds.FileMenu, "菜单导航", FileNavContext.Id)
     ];
 
     public static IReadOnlyList<WorkspaceView> For(string contextId) =>

@@ -9,9 +9,6 @@
         Background="#F3F4F6"
         FontFamily="Segoe UI"
         FontSize="13">
-  <Window.Resources>
-    <BooleanToVisibilityConverter x:Key="BoolVis"/>
-  </Window.Resources>
   <DockPanel>
     <Menu DockPanel.Dock="Top">
       <MenuItem Header="文件">
@@ -21,6 +18,7 @@
         <MenuItem Header="退出" Click="Exit_Click"/>
       </MenuItem>
       <MenuItem Header="上下文">
+        <MenuItem Header="文件菜单" Click="ShowFileNav_Click"/>
         <MenuItem Header="解析入库" Click="ShowIndex_Click"/>
         <MenuItem Header="ODAAF" Click="ShowOdaaf_Click"/>
       </MenuItem>
@@ -28,7 +26,7 @@
         <MenuItem Header="工程索引" Click="ViewProject_Click"/>
         <MenuItem Header="目录查找" Click="ViewBrowse_Click"/>
         <Separator/>
-        <MenuItem Header="文件菜单" Click="ViewMenu_Click"/>
+        <MenuItem Header="文件菜单图" Click="ViewMenu_Click"/>
         <MenuItem Header="Z 抽出" Click="ViewZ_Click"/>
         <MenuItem Header="类散图" Click="ViewScatter_Click"/>
         <MenuItem Header="函数层" Click="ViewLayer_Click"/>
@@ -43,41 +41,137 @@
     <TextBlock DockPanel.Dock="Bottom" Margin="12,6" Foreground="#344054" Text="{Binding Status}"/>
     <Grid Margin="8">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="240"/>
-        <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="300"/>
+        <ColumnDefinition Width="280" MinWidth="160"/>
+        <ColumnDefinition Width="6"/>
+        <ColumnDefinition Width="*" MinWidth="240"/>
+        <ColumnDefinition Width="6"/>
+        <ColumnDefinition Width="300" MinWidth="180"/>
       </Grid.ColumnDefinitions>
-      <Border Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6" Margin="0,0,8,0">
-        <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Margin="10,8,10,4" FontWeight="SemiBold" Text="当前上下文的视图"/>
-          <ListBox ItemsSource="{Binding ContextViews}" SelectedItem="{Binding SelectedView}" BorderThickness="0">
-            <ListBox.ItemTemplate>
-              <DataTemplate DataType="{x:Type core:WorkspaceView}">
-                <TextBlock Margin="2,4" Text="{Binding Title}"/>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-        </DockPanel>
+
+      <Border Grid.Column="0" Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
+        <Grid>
+          <DockPanel>
+            <DockPanel.Style>
+              <Style TargetType="DockPanel">
+                <Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsFileNavContext}" Value="True">
+                    <Setter Property="Visibility" Value="Visible"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </DockPanel.Style>
+            <StackPanel DockPanel.Dock="Top" Margin="10,8,10,4">
+              <TextBlock FontWeight="SemiBold" Text="文件菜单"/>
+              <TextBlock Margin="0,4,0,0" Foreground="#667085" TextWrapping="Wrap" FontSize="12"
+                         Text="分组 → 菜单 → 处理函数。展开看下一层调用。点节点，右边画这一层。"/>
+            </StackPanel>
+            <TreeView BorderThickness="0" ItemsSource="{Binding NavRoots}"
+                      SelectedItemChanged="Nav_SelectedItemChanged">
+              <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                  <Setter Property="IsExpanded" Value="False"/>
+                  <EventSetter Event="Expanded" Handler="Nav_Expanded"/>
+                </Style>
+              </TreeView.ItemContainerStyle>
+              <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type core:NavNode}" ItemsSource="{Binding Children}">
+                  <StackPanel Orientation="Horizontal" Margin="0,2">
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                    <TextBlock Margin="8,0,0,0" Foreground="#667085" Text="{Binding Hint}"/>
+                  </StackPanel>
+                </HierarchicalDataTemplate>
+              </TreeView.Resources>
+            </TreeView>
+          </DockPanel>
+          <DockPanel>
+            <DockPanel.Style>
+              <Style TargetType="DockPanel">
+                <Setter Property="Visibility" Value="Visible"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsFileNavContext}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </DockPanel.Style>
+            <TextBlock DockPanel.Dock="Top" Margin="10,8,10,4" FontWeight="SemiBold" Text="当前上下文的视图"/>
+            <ListBox ItemsSource="{Binding ContextViews}" SelectedItem="{Binding SelectedView}" BorderThickness="0">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type core:WorkspaceView}">
+                  <TextBlock Margin="2,4" Text="{Binding Title}"/>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </Grid>
       </Border>
-      <TabControl Grid.Column="1" ItemsSource="{Binding Documents}" SelectedItem="{Binding ActiveDocument}">
-        <TabControl.ItemTemplate>
-          <DataTemplate DataType="{x:Type local:WorkspaceDocument}">
-            <TextBlock Text="{Binding Title}"/>
-          </DataTemplate>
-        </TabControl.ItemTemplate>
-        <TabControl.ContentTemplate>
-          <DataTemplate DataType="{x:Type local:WorkspaceDocument}">
-            <local:DocumentHost/>
-          </DataTemplate>
-        </TabControl.ContentTemplate>
-      </TabControl>
-      <Border Grid.Column="2" Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6" Margin="8,0,0,0">
+
+      <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    ResizeBehavior="PreviousAndNext" ResizeDirection="Columns"
+                    Background="#C5CDD6" Cursor="SizeWE" ShowsPreview="True"/>
+
+      <Border Grid.Column="2" Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
+        <Grid>
+          <DockPanel>
+            <DockPanel.Style>
+              <Style TargetType="DockPanel">
+                <Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsFileNavContext}" Value="True">
+                    <Setter Property="Visibility" Value="Visible"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </DockPanel.Style>
+            <TextBlock DockPanel.Dock="Top" Margin="12,8,12,4" FontWeight="SemiBold"
+                       Text="这一层的流程图（不跨进被调函数）"/>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#F8FAFC">
+              <local:FlowCanvas x:Name="NavFlow"/>
+            </ScrollViewer>
+          </DockPanel>
+          <TabControl>
+            <TabControl.Style>
+              <Style TargetType="TabControl">
+                <Setter Property="Visibility" Value="Visible"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsFileNavContext}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+            </TabControl.Style>
+            <TabControl.ItemsSource>
+              <Binding Path="Documents"/>
+            </TabControl.ItemsSource>
+            <TabControl.SelectedItem>
+              <Binding Path="ActiveDocument"/>
+            </TabControl.SelectedItem>
+            <TabControl.ItemTemplate>
+              <DataTemplate DataType="{x:Type local:WorkspaceDocument}">
+                <TextBlock Text="{Binding Title}"/>
+              </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+              <DataTemplate DataType="{x:Type local:WorkspaceDocument}">
+                <local:DocumentHost/>
+              </DataTemplate>
+            </TabControl.ContentTemplate>
+          </TabControl>
+        </Grid>
+      </Border>
+
+      <GridSplitter Grid.Column="3" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    ResizeBehavior="PreviousAndNext" ResizeDirection="Columns"
+                    Background="#C5CDD6" Cursor="SizeWE" ShowsPreview="True"/>
+
+      <Border Grid.Column="4" Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
         <DockPanel>
           <TextBlock DockPanel.Dock="Top" Margin="12,8,12,4" FontWeight="SemiBold" Text="函数枝图"/>
           <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="12,4,12,12">
               <TextBlock TextWrapping="Wrap" Foreground="#667085"
-                         Text="解析入库不打开枝图。ODAAF 里选中已对上的函数后，动因是方法名，物因是参数。"/>
+                         Text="动因是方法名，物因是参数。结构因和极因先空着。"/>
               <StackPanel Margin="0,10,0,0" DataContext="{Binding SelectedCard}">
                 <StackPanel.Style>
                   <Style TargetType="StackPanel">

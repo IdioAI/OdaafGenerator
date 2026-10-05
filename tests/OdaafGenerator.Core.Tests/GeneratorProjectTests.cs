@@ -18,9 +18,9 @@ public class GeneratorProjectTests
         Assert.True(File.Exists(project.SolutionPath), project.SolutionPath);
         Assert.True(File.Exists(project.OdaafPath), project.OdaafPath);
         Assert.EndsWith("rapidcad-zextract-xml.odaaf", project.OdaafPath, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(OdaafFileContext.Id, project.DefaultContextId);
-        Assert.Equal(["index", "odaaf-file"], project.Contexts.Select(context => context.Id));
-        Assert.Equal(["解析入库", "ODAAF"], project.Contexts.Select(context => context.Name));
+        Assert.Equal(FileNavContext.Id, project.DefaultContextId);
+        Assert.Equal(["index", "odaaf-file", "file-nav"], project.Contexts.Select(context => context.Id));
+        Assert.Equal(["解析入库", "ODAAF", "文件菜单"], project.Contexts.Select(context => context.Name));
     }
 
     [Fact]

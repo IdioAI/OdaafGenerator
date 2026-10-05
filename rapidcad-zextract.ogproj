@@ -9,8 +9,9 @@
   <og:Odaaf href="../OntoLib/BzoxOdaaf/omron/from-code/rapidcad-zextract-xml.odaaf"
            uri="urn:odaaf:code:rapidcad-zextract-xml"
            graphVersion="1.0.0" />
-  <og:Contexts default="odaaf-file">
+  <og:Contexts default="file-nav">
     <og:Context id="index" name="解析入库" />
     <og:Context id="odaaf-file" name="ODAAF" />
+    <og:Context id="file-nav" name="文件菜单" />
   </og:Contexts>
 </og:GeneratorProject>

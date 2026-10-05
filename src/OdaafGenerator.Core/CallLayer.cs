@@ -10,7 +10,8 @@ public sealed record DirectCall(
     string? Signature,
     string? FilePath,
     int StartLine,
-    bool Resolved);
+    bool Resolved,
+    PatternAPhase Phase);
 
 public sealed class CallLayerGraph
 {
@@ -25,30 +26,40 @@ public sealed class CallLayerGraph
         caller.Y = placedCaller?.Y ?? 36;
         var cards = new List<FunctionCard> { caller };
         var edges = new List<GraphEdge>();
-        for (var i = 0; i < Calls.Count; i++)
+        var lanes = Calls
+            .Where(call => !PatternA.IsSyntaxNoise(call.Name))
+            .GroupBy(call => call.Phase)
+            .ToDictionary(group => group.Key, group => group.ToList());
+        foreach (var phase in Enum.GetValues<PatternAPhase>())
         {
-            var call = Calls[i];
-            var path = call.SyntaxPath ?? Caller.SyntaxPath + "." + call.Name + "#" + i;
-            var placed = layout.Find(path);
-            cards.Add(new FunctionCard
+            if (!lanes.TryGetValue(phase, out var lane))
+                continue;
+            var column = 280 + (int)phase * 230;
+            for (var i = 0; i < lane.Count; i++)
             {
-                SyntaxPath = path,
-                Name = call.Name,
-                StepLabel = call.Resolved ? "直接调用" : "未对上索引",
-                Project = Caller.Project,
-                Signature = call.Signature ?? "",
-                FilePath = call.FilePath ?? "",
-                StartLine = call.StartLine,
-                EndLine = call.StartLine,
-                Materials = SignatureParser.Parameters(call.Signature),
-                Note = call.Resolved ? null : "这一层只列出名字，索引里没有对上。",
-                OnCanvas = true,
-                X = placed?.X ?? 280,
-                Y = placed?.Y ?? 36 + i * 96,
-                Formal = placed?.Formal ?? "",
-                Final = placed?.Final ?? ""
-            });
-            edges.Add(new GraphEdge(caller.SyntaxPath, path));
+                var call = lane[i];
+                var path = (call.SyntaxPath ?? Caller.SyntaxPath + "." + call.Name) + "@" + phase;
+                var placed = layout.Find(path);
+                cards.Add(new FunctionCard
+                {
+                    SyntaxPath = path,
+                    Name = call.Name,
+                    StepLabel = PatternA.Title(phase),
+                    Project = Caller.Project,
+                    Signature = call.Signature ?? "",
+                    FilePath = call.FilePath ?? "",
+                    StartLine = call.StartLine,
+                    EndLine = call.StartLine,
+                    Materials = SignatureParser.Parameters(call.Signature),
+                    Note = call.Resolved ? null : "这一层只列出名字，索引里没有对上。",
+                    OnCanvas = true,
+                    X = column,
+                    Y = 36 + i * 96,
+                    Formal = placed?.Formal ?? "",
+                    Final = placed?.Final ?? ""
+                });
+                edges.Add(new GraphEdge(caller.SyntaxPath, path));
+            }
         }
 
         return (cards, edges);
@@ -57,16 +68,28 @@ public sealed class CallLayerGraph
     public static CallLayerGraph Expand(CodeSymbol caller, string sourceRoot, Catalog catalog)
     {
         var names = ReadInvocations(caller, sourceRoot);
+        var dialogIndex = -1;
+        for (var i = 0; i < names.Count; i++)
+        {
+            if (names[i] == "ShowDialog")
+            {
+                dialogIndex = i;
+                break;
+            }
+        }
+
         var seen = new HashSet<string>(StringComparer.Ordinal);
         var calls = new List<DirectCall>();
-        foreach (var name in names)
+        for (var index = 0; index < names.Count; index++)
         {
-            if (!seen.Add(name))
+            var name = names[index];
+            var phase = PatternA.Classify(name, index, dialogIndex);
+            if (!seen.Add(phase + ":" + name) || PatternA.IsSyntaxNoise(name))
                 continue;
             var symbol = catalog.ResolveCall(name, caller.TypeSyntaxPath);
             calls.Add(symbol is null
-                ? new DirectCall(name, null, null, null, 0, false)
-                : new DirectCall(symbol.SimpleName, symbol.SyntaxPath, symbol.Signature, symbol.FilePath, symbol.StartLine, true));
+                ? new DirectCall(name, null, null, null, 0, false, phase)
+                : new DirectCall(symbol.SimpleName, symbol.SyntaxPath, symbol.Signature, symbol.FilePath, symbol.StartLine, true, phase));
         }
 
         return new CallLayerGraph { Caller = caller, Calls = calls };
