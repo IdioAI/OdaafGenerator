@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<og:GeneratorProject xmlns:og="urn:odaaf:generator"
+                     version="1.0"
+                     id="rapidcad-zextract-xml"
+                     name="RapidCAD Z抽出 XML">
+  <og:Description>OdaafGenerator 的工程索引。数据库是 CodeSliceIndex 的语法索引。源码目录是 BHEditor.sln 所在目录，索引里的文件路径相对这里。odaaf 是当前与这张 XML 上下文图画在一起的本体。</og:Description>
+  <og:Database href="../CodeSliceIndex/index/bheditor.db" />
+  <og:Source href="../../work/main/dev/dev-01-develop/OmronXmlGenerator/src" solution="BHEditor.sln" />
+  <og:Odaaf href="../OntoLib/BzoxOdaaf/omron/from-code/rapidcad-zextract-xml.odaaf"
+           uri="urn:odaaf:code:rapidcad-zextract-xml"
+           graphVersion="1.0.0" />
+</og:GeneratorProject>
