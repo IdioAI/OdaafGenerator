@@ -75,7 +75,7 @@ public sealed class FunctionCard : INotifyPropertyChanged
         return card;
     }
 
-    public static FunctionCard OffCanvas(CodeSymbol symbol, LayoutNode? placed) =>
+    public static FunctionCard OffCanvas(CodeSymbol symbol, LayoutNode? placed, bool onCanvas = false) =>
         new()
         {
             SyntaxPath = symbol.SyntaxPath,
@@ -88,9 +88,9 @@ public sealed class FunctionCard : INotifyPropertyChanged
             EndLine = symbol.EndLine,
             Materials = SignatureParser.Parameters(symbol.Signature),
             Note = null,
-            OnCanvas = false,
-            X = 0,
-            Y = 0,
+            OnCanvas = onCanvas,
+            X = placed?.X ?? 0,
+            Y = placed?.Y ?? 0,
             Formal = placed?.Formal ?? "",
             Final = placed?.Final ?? ""
         };

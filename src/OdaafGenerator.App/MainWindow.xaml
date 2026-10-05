@@ -4,290 +4,81 @@
         xmlns:core="clr-namespace:OdaafGenerator.Core;assembly=OdaafGenerator.Core"
         xmlns:local="clr-namespace:OdaafGenerator.App"
         Title="OdaafGenerator"
-        Height="820" Width="1280"
-        MinHeight="640" MinWidth="1080"
+        Height="860" Width="1360"
+        MinHeight="680" MinWidth="1100"
         Background="#F3F4F6"
         FontFamily="Segoe UI"
         FontSize="13">
   <Window.Resources>
-    <Style x:Key="ContextButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-      <Setter Property="Width" Value="96"/>
-      <Setter Property="Margin" Value="0,0,8,0"/>
-    </Style>
+    <BooleanToVisibilityConverter x:Key="BoolVis"/>
   </Window.Resources>
-  <Grid Margin="12">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="340"/>
-      <ColumnDefinition Width="*"/>
-      <ColumnDefinition Width="340"/>
-    </Grid.ColumnDefinitions>
-
-    <Grid Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,10">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-      </Grid.RowDefinitions>
+  <DockPanel>
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="文件">
+        <MenuItem Header="打开工程索引…" Click="Browse_Click"/>
+        <MenuItem Header="重新加载" Click="Load_Click"/>
+        <Separator/>
+        <MenuItem Header="退出" Click="Exit_Click"/>
+      </MenuItem>
+      <MenuItem Header="上下文">
+        <MenuItem Header="解析入库" Click="ShowIndex_Click"/>
+        <MenuItem Header="ODAAF" Click="ShowOdaaf_Click"/>
+      </MenuItem>
+      <MenuItem Header="视图">
+        <MenuItem Header="工程索引" Click="ViewProject_Click"/>
+        <MenuItem Header="目录查找" Click="ViewBrowse_Click"/>
+        <Separator/>
+        <MenuItem Header="文件菜单" Click="ViewMenu_Click"/>
+        <MenuItem Header="Z 抽出" Click="ViewZ_Click"/>
+        <MenuItem Header="类散图" Click="ViewScatter_Click"/>
+        <MenuItem Header="函数层" Click="ViewLayer_Click"/>
+      </MenuItem>
+    </Menu>
+    <Border DockPanel.Dock="Top" Background="#E8EEF5" BorderBrush="#D0D5DD" BorderThickness="0,0,0,1" Padding="12,8">
       <DockPanel>
-        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-          <Button Content="解析入库" Click="ShowIndex_Click">
-            <Button.Style>
-              <Style TargetType="Button" BasedOn="{StaticResource ContextButton}">
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding IsIndexContext}" Value="True">
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="Background" Value="#D6E4F0"/>
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </Button.Style>
-          </Button>
-          <Button Content="ODAAF" Click="ShowOdaaf_Click">
-            <Button.Style>
-              <Style TargetType="Button" BasedOn="{StaticResource ContextButton}">
-                <Style.Triggers>
-                  <DataTrigger Binding="{Binding IsOdaafContext}" Value="True">
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="Background" Value="#D6E4F0"/>
-                  </DataTrigger>
-                </Style.Triggers>
-              </Style>
-            </Button.Style>
-          </Button>
-          <Button Content="加载" Width="64" Margin="8,0,8,0" Click="Load_Click"/>
-          <Button Content="浏览…" Width="64" Margin="0,0,8,0" Click="Browse_Click"/>
-        </StackPanel>
-        <TextBox VerticalContentAlignment="Center" ToolTip="工程索引"
-                 Text="{Binding ProjectFilePath, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBlock DockPanel.Dock="Right" Foreground="#667085" Text="{Binding ProjectFilePath}" TextTrimming="CharacterEllipsis"/>
+        <TextBlock FontWeight="SemiBold" Text="{Binding ContextLine}"/>
       </DockPanel>
-      <DockPanel Grid.Row="1" Margin="0,8,0,0">
-        <DockPanel.Style>
-          <Style TargetType="DockPanel">
-            <Setter Property="Visibility" Value="Collapsed"/>
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding IsIndexContext}" Value="True">
-                <Setter Property="Visibility" Value="Visible"/>
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </DockPanel.Style>
-        <Button DockPanel.Dock="Right" Content="查找" Width="64" Margin="8,0,0,0" Click="Search_Click"/>
-        <TextBox DockPanel.Dock="Right" Width="180" Margin="8,0,0,0" VerticalContentAlignment="Center"
-                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" KeyDown="SearchBox_KeyDown"/>
-        <ComboBox DockPanel.Dock="Right" Width="96" Margin="8,0,0,0"
-                  ItemsSource="{Binding Levels}" SelectedItem="{Binding ChosenLevel}"/>
-        <TextBlock VerticalAlignment="Center" Foreground="#667085" Text="按项目、命名空间、类、函数查找，一次只查一级。"/>
-      </DockPanel>
-      <TextBlock Grid.Row="2" Margin="0,6,0,0" Foreground="#667085" TextTrimming="CharacterEllipsis"
-                 Text="{Binding AnchorLine}" ToolTip="{Binding AnchorLine}"/>
-    </Grid>
-
-    <Grid Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
-      <Grid>
-        <Grid.Style>
-          <Style TargetType="Grid">
-            <Setter Property="Visibility" Value="Collapsed"/>
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding IsIndexContext}" Value="True">
-                <Setter Property="Visibility" Value="Visible"/>
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </Grid.Style>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="160"/>
-          <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Border Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Margin="10,8,10,4" FontWeight="SemiBold" Text="查找结果"/>
-            <ListBox ItemsSource="{Binding Hits}" BorderThickness="0" SelectionChanged="Hits_SelectionChanged">
-              <ListBox.ItemTemplate>
-                <DataTemplate DataType="{x:Type core:SearchHit}">
-                  <StackPanel Margin="2">
-                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding Subtitle}" Foreground="#667085" FontSize="11"/>
-                  </StackPanel>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </DockPanel>
-        </Border>
-        <Border Grid.Row="1" Margin="0,8,0,0" Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Top" Margin="10,8,10,4" FontWeight="SemiBold" Text="目录"/>
-            <TreeView BorderThickness="0" ItemsSource="{Binding Projects}"
-                      VirtualizingStackPanel.IsVirtualizing="True"
-                      SelectedItemChanged="Tree_SelectedItemChanged">
-              <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type core:ProjectEntry}" ItemsSource="{Binding Namespaces}">
-                  <TextBlock Text="{Binding Name}">
-                    <TextBlock.Style>
-                      <Style TargetType="TextBlock">
-                        <Setter Property="Foreground" Value="#667085"/>
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding IsFocus}" Value="True">
-                            <Setter Property="Foreground" Value="#1D4E89"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </TextBlock.Style>
-                  </TextBlock>
-                </HierarchicalDataTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type core:NamespaceEntry}" ItemsSource="{Binding Types}">
-                  <TextBlock Text="{Binding Name}"/>
-                </HierarchicalDataTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type core:TypeEntry}" ItemsSource="{Binding Functions}">
-                  <TextBlock Text="{Binding Name}"/>
-                </HierarchicalDataTemplate>
-                <DataTemplate DataType="{x:Type core:CodeSymbol}">
-                  <TextBlock Text="{Binding SimpleName}"/>
-                </DataTemplate>
-              </TreeView.Resources>
-            </TreeView>
-          </DockPanel>
-        </Border>
-      </Grid>
-      <Border Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
-        <Border.Style>
-          <Style TargetType="Border">
-            <Setter Property="Visibility" Value="Collapsed"/>
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding IsOdaafContext}" Value="True">
-                <Setter Property="Visibility" Value="Visible"/>
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </Border.Style>
+    </Border>
+    <TextBlock DockPanel.Dock="Bottom" Margin="12,6" Foreground="#344054" Text="{Binding Status}"/>
+    <Grid Margin="8">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="240"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="300"/>
+      </Grid.ColumnDefinitions>
+      <Border Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6" Margin="0,0,8,0">
         <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Margin="10,8,10,4" FontWeight="SemiBold" Text="文件菜单"/>
-          <ListBox ItemsSource="{Binding MenuCards}" BorderThickness="0" SelectionChanged="Menu_SelectionChanged">
+          <TextBlock DockPanel.Dock="Top" Margin="10,8,10,4" FontWeight="SemiBold" Text="当前上下文的视图"/>
+          <ListBox ItemsSource="{Binding ContextViews}" SelectedItem="{Binding SelectedView}" BorderThickness="0">
             <ListBox.ItemTemplate>
-              <DataTemplate DataType="{x:Type core:FunctionCard}">
-                <StackPanel Margin="2">
-                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                  <TextBlock Text="{Binding StepLabel}" Foreground="#667085" FontSize="11"/>
-                </StackPanel>
+              <DataTemplate DataType="{x:Type core:WorkspaceView}">
+                <TextBlock Margin="2,4" Text="{Binding Title}"/>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
         </DockPanel>
       </Border>
-    </Grid>
-
-    <Grid Grid.Row="1" Grid.Column="1">
-      <Border Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
-        <Border.Style>
-          <Style TargetType="Border">
-            <Setter Property="Visibility" Value="Collapsed"/>
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding IsIndexContext}" Value="True">
-                <Setter Property="Visibility" Value="Visible"/>
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </Border.Style>
-        <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Margin="12,8,12,4" FontWeight="SemiBold" Text="索引说明"/>
-          <TextBlock Margin="16" Text="{Binding IndexSummary}" TextWrapping="Wrap" LineHeight="22"/>
-        </DockPanel>
-      </Border>
-      <Border Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
-        <Border.Style>
-          <Style TargetType="Border">
-            <Setter Property="Visibility" Value="Collapsed"/>
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding IsOdaafContext}" Value="True">
-                <Setter Property="Visibility" Value="Visible"/>
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </Border.Style>
-        <DockPanel>
-          <DockPanel DockPanel.Dock="Top" Margin="12,8,12,4">
-            <Button DockPanel.Dock="Right" Content="返回文件菜单" Padding="10,2" Click="BackToMenu_Click">
-              <Button.Style>
-                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                  <Setter Property="Visibility" Value="Collapsed"/>
-                  <Style.Triggers>
-                    <DataTrigger Binding="{Binding ShowingZExtract}" Value="True">
-                      <Setter Property="Visibility" Value="Visible"/>
-                    </DataTrigger>
-                  </Style.Triggers>
-                </Style>
-              </Button.Style>
-            </Button>
-            <Button DockPanel.Dock="Right" Content="进入 Z 抽出" Padding="10,2" Margin="0,0,8,0"
-                    Click="EnterZ_Click" IsEnabled="{Binding CanEnterZ}">
-              <Button.Style>
-                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                  <Setter Property="Visibility" Value="Visible"/>
-                  <Style.Triggers>
-                    <DataTrigger Binding="{Binding ShowingZExtract}" Value="True">
-                      <Setter Property="Visibility" Value="Collapsed"/>
-                    </DataTrigger>
-                  </Style.Triggers>
-                </Style>
-              </Button.Style>
-            </Button>
-            <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding CanvasTitle}"/>
-          </DockPanel>
-          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#F8FAFC">
-            <local:FlowCanvas x:Name="Flow"/>
-          </ScrollViewer>
-        </DockPanel>
-      </Border>
-    </Grid>
-
-    <Grid Grid.Row="1" Grid.Column="2" Margin="10,0,0,0">
-      <Border Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
-        <Border.Style>
-          <Style TargetType="Border">
-            <Setter Property="Visibility" Value="Collapsed"/>
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding IsIndexContext}" Value="True">
-                <Setter Property="Visibility" Value="Visible"/>
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </Border.Style>
-        <TextBlock Margin="16" TextWrapping="Wrap" Foreground="#667085" LineHeight="22"
-                   Text="解析入库只说明数据库里有什么。点目录或查找结果不会打开函数枝图。"/>
-      </Border>
-      <Border Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6">
-        <Border.Style>
-          <Style TargetType="Border">
-            <Setter Property="Visibility" Value="Collapsed"/>
-            <Style.Triggers>
-              <DataTrigger Binding="{Binding IsOdaafContext}" Value="True">
-                <Setter Property="Visibility" Value="Visible"/>
-              </DataTrigger>
-            </Style.Triggers>
-          </Style>
-        </Border.Style>
+      <TabControl Grid.Column="1" ItemsSource="{Binding Documents}" SelectedItem="{Binding ActiveDocument}">
+        <TabControl.ItemTemplate>
+          <DataTemplate DataType="{x:Type local:WorkspaceDocument}">
+            <TextBlock Text="{Binding Title}"/>
+          </DataTemplate>
+        </TabControl.ItemTemplate>
+        <TabControl.ContentTemplate>
+          <DataTemplate DataType="{x:Type local:WorkspaceDocument}">
+            <local:DocumentHost/>
+          </DataTemplate>
+        </TabControl.ContentTemplate>
+      </TabControl>
+      <Border Grid.Column="2" Background="White" BorderBrush="#D0D5DD" BorderThickness="1" CornerRadius="6" Margin="8,0,0,0">
         <DockPanel>
           <TextBlock DockPanel.Dock="Top" Margin="12,8,12,4" FontWeight="SemiBold" Text="函数枝图"/>
           <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="12,4,12,12">
-              <TextBlock Text="选择一个已对上索引的菜单命令。" Foreground="#667085">
-                <TextBlock.Style>
-                  <Style TargetType="TextBlock">
-                    <Setter Property="Visibility" Value="Collapsed"/>
-                    <Style.Triggers>
-                      <DataTrigger Binding="{Binding SelectedCard}" Value="{x:Null}">
-                        <Setter Property="Visibility" Value="Visible"/>
-                      </DataTrigger>
-                    </Style.Triggers>
-                  </Style>
-                </TextBlock.Style>
-              </TextBlock>
-              <StackPanel DataContext="{Binding SelectedCard}">
+              <TextBlock TextWrapping="Wrap" Foreground="#667085"
+                         Text="解析入库不打开枝图。ODAAF 里选中已对上的函数后，动因是方法名，物因是参数。"/>
+              <StackPanel Margin="0,10,0,0" DataContext="{Binding SelectedCard}">
                 <StackPanel.Style>
                   <Style TargetType="StackPanel">
                     <Style.Triggers>
@@ -298,7 +89,7 @@
                   </Style>
                 </StackPanel.Style>
                 <TextBlock Text="动因" Foreground="#1D4E89" FontWeight="SemiBold"/>
-                <TextBlock Text="{Binding Name}" FontSize="20" Margin="0,2,0,8" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding Name}" FontSize="18" Margin="0,2,0,8" TextWrapping="Wrap"/>
                 <TextBlock Text="{Binding SyntaxPath}" Foreground="#667085" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,10"/>
                 <TextBlock Text="物因" Foreground="#1D4E89" FontWeight="SemiBold"/>
                 <TextBlock Text="（无参数）" Margin="0,4,0,4" Foreground="#667085">
@@ -326,10 +117,10 @@
                 </ItemsControl>
                 <TextBlock Text="结构因" Foreground="#1D4E89" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Formal, UpdateSourceTrigger=LostFocus}" AcceptsReturn="True"
-                         MinHeight="64" TextWrapping="Wrap" Margin="0,4,0,8" LostFocus="Cause_LostFocus"/>
+                         MinHeight="56" TextWrapping="Wrap" Margin="0,4,0,8" LostFocus="Cause_LostFocus"/>
                 <TextBlock Text="极因" Foreground="#1D4E89" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Final, UpdateSourceTrigger=LostFocus}" AcceptsReturn="True"
-                         MinHeight="64" TextWrapping="Wrap" Margin="0,4,0,8" LostFocus="Cause_LostFocus"/>
+                         MinHeight="56" TextWrapping="Wrap" Margin="0,4,0,8" LostFocus="Cause_LostFocus"/>
                 <TextBlock Text="{Binding Note}" TextWrapping="Wrap" Margin="0,0,0,8" Foreground="#667085"/>
                 <TextBlock Text="{Binding Location}" TextWrapping="Wrap" FontSize="11" Foreground="#667085"/>
                 <TextBlock Text="{Binding Signature}" TextWrapping="Wrap" FontSize="11" Margin="0,6,0,0"/>
@@ -339,7 +130,5 @@
         </DockPanel>
       </Border>
     </Grid>
-
-    <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Margin="0,8,0,0" Foreground="#344054" Text="{Binding Status}"/>
-  </Grid>
+  </DockPanel>
 </Window>

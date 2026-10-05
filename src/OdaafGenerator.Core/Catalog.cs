@@ -71,7 +71,36 @@ public sealed class Catalog
         ?? _symbols.FirstOrDefault(symbol => SymbolKinds.IsFunction(symbol.Kind) && symbol.SimpleName == simpleName);
 
     public CodeSymbol? Find(string syntaxPath) =>
-        _symbols.FirstOrDefault(symbol => symbol.SyntaxPath == syntaxPath);
+        _symbols.FirstOrDefault(symbol => symbol.SyntaxPath == syntaxPath)
+        ?? _host.FirstOrDefault(symbol => symbol.SyntaxPath == syntaxPath);
+
+    public IReadOnlyList<TypeEntry> FocusTypes() =>
+        Projects.Where(project => project.IsFocus)
+            .SelectMany(project => project.Namespaces)
+            .SelectMany(space => space.Types)
+            .ToList();
+
+    public IEnumerable<CodeSymbol> AllFunctions() =>
+        _host.Concat(_symbols).Where(symbol => SymbolKinds.IsFunction(symbol.Kind));
+
+    public CodeSymbol? ResolveCall(string simpleName, string? callerTypePath)
+    {
+        if (!string.IsNullOrEmpty(callerTypePath))
+        {
+            var local = AllFunctions().FirstOrDefault(symbol =>
+                symbol.TypeSyntaxPath == callerTypePath && symbol.SimpleName == simpleName);
+            if (local is not null)
+                return local;
+        }
+
+        var matches = AllFunctions().Where(symbol => symbol.SimpleName == simpleName).ToList();
+        if (matches.Count == 0)
+            return FindMethod(simpleName);
+        if (matches.Count == 1)
+            return matches[0];
+        return matches.FirstOrDefault(symbol => symbol.Kind == "method" && !symbol.SyntaxPath.Contains(".I", StringComparison.Ordinal))
+            ?? matches[0];
+    }
 
     public IReadOnlyList<FunctionCard> BuildXmlContext(LayoutFile layout)
     {
