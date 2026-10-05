@@ -38,41 +38,24 @@ public sealed record ProjectEntry(
 public sealed class Catalog
 {
     private readonly List<CodeSymbol> _symbols;
+    private readonly List<CodeSymbol> _host;
 
-    private Catalog(IReadOnlyList<ProjectEntry> projects, List<CodeSymbol> symbols)
+    private Catalog(IReadOnlyList<ProjectEntry> projects, List<CodeSymbol> symbols, List<CodeSymbol> host)
     {
         Projects = projects;
         _symbols = symbols;
+        _host = host;
     }
 
     public IReadOnlyList<ProjectEntry> Projects { get; }
 
-    public static Catalog Create(IReadOnlyList<string> projectNames, IReadOnlyList<RawDeclaration> focusRows)
+    public static Catalog Create(
+        IReadOnlyList<string> projectNames,
+        IReadOnlyList<RawDeclaration> focusRows,
+        IReadOnlyList<RawDeclaration>? hostRows = null)
     {
-        var map = new Dictionary<(string File, int Start), RawDeclaration>();
-        foreach (var row in focusRows)
-            map[(row.FilePath, row.StartByte)] = row;
-
-        var symbols = new List<CodeSymbol>();
-        foreach (var row in focusRows)
-        {
-            if (!SymbolKinds.IsType(row.Kind) && !SymbolKinds.IsFunction(row.Kind))
-                continue;
-            var typeDecl = ImmediateType(row, map);
-            var typePath = SymbolKinds.IsType(row.Kind) ? row.SyntaxPath : typeDecl?.SyntaxPath ?? "";
-            symbols.Add(new CodeSymbol(
-                row.ProjectName,
-                row.FilePath,
-                row.StartByte,
-                row.Kind,
-                row.SyntaxPath,
-                row.Signature,
-                row.StartLine,
-                row.EndLine,
-                NamespaceOf(row, map),
-                SyntaxName.Last(typePath),
-                typePath));
-        }
+        var symbols = ToSymbols(focusRows);
+        var host = ToSymbols(hostRows ?? []);
 
         var entries = projectNames
             .Distinct(StringComparer.Ordinal)
@@ -80,8 +63,12 @@ public sealed class Catalog
             .OrderBy(entry => entry.IsFocus ? 0 : 1)
             .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
-        return new Catalog(entries, symbols);
+        return new Catalog(entries, symbols, host);
     }
+
+    public CodeSymbol? FindMethod(string simpleName) =>
+        _host.FirstOrDefault(symbol => SymbolKinds.IsFunction(symbol.Kind) && symbol.SimpleName == simpleName)
+        ?? _symbols.FirstOrDefault(symbol => SymbolKinds.IsFunction(symbol.Kind) && symbol.SimpleName == simpleName);
 
     public CodeSymbol? Find(string syntaxPath) =>
         _symbols.FirstOrDefault(symbol => symbol.SyntaxPath == syntaxPath);
@@ -161,6 +148,36 @@ public sealed class Catalog
         if (truncated)
             taken.RemoveAt(taken.Count - 1);
         return new SearchResult(taken, truncated);
+    }
+
+    private static List<CodeSymbol> ToSymbols(IReadOnlyList<RawDeclaration> rows)
+    {
+        var map = new Dictionary<(string File, int Start), RawDeclaration>();
+        foreach (var row in rows)
+            map[(row.FilePath, row.StartByte)] = row;
+
+        var symbols = new List<CodeSymbol>();
+        foreach (var row in rows)
+        {
+            if (!SymbolKinds.IsType(row.Kind) && !SymbolKinds.IsFunction(row.Kind))
+                continue;
+            var typeDecl = ImmediateType(row, map);
+            var typePath = SymbolKinds.IsType(row.Kind) ? row.SyntaxPath : typeDecl?.SyntaxPath ?? "";
+            symbols.Add(new CodeSymbol(
+                row.ProjectName,
+                row.FilePath,
+                row.StartByte,
+                row.Kind,
+                row.SyntaxPath,
+                row.Signature,
+                row.StartLine,
+                row.EndLine,
+                NamespaceOf(row, map),
+                SyntaxName.Last(typePath),
+                typePath));
+        }
+
+        return symbols;
     }
 
     private static ProjectEntry Entry(string name, List<CodeSymbol> symbols)

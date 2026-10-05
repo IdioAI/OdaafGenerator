@@ -19,6 +19,8 @@ public partial class MainWindow : Window
         {
             if (args.PropertyName == nameof(MainViewModel.Cards))
                 Flow.Cards = _model.Cards;
+            if (args.PropertyName == nameof(MainViewModel.CanvasEdges))
+                Flow.Edges = _model.CanvasEdges;
             if (args.PropertyName == nameof(MainViewModel.SelectedCard))
             {
                 Flow.SelectedSyntaxPath = _model.SelectedCard is { OnCanvas: true } card ? card.SyntaxPath : null;
@@ -63,4 +65,18 @@ public partial class MainWindow : Window
         _model.SelectTree(e.NewValue);
 
     private void Cause_LostFocus(object sender, RoutedEventArgs e) => _model.SaveLayout();
+
+    private void ShowIndex_Click(object sender, RoutedEventArgs e) => _model.ShowIndex();
+
+    private void ShowOdaaf_Click(object sender, RoutedEventArgs e) => _model.ShowOdaaf();
+
+    private void EnterZ_Click(object sender, RoutedEventArgs e) => _model.EnterZExtract();
+
+    private void BackToMenu_Click(object sender, RoutedEventArgs e) => _model.BackToFileMenu();
+
+    private void Menu_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is FunctionCard card)
+            _model.SelectMenu(card);
+    }
 }

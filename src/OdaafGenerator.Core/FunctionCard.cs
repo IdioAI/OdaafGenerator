@@ -23,6 +23,7 @@ public sealed class FunctionCard : INotifyPropertyChanged
     public required IReadOnlyList<ParameterLeaf> Materials { get; init; }
     public string? Note { get; init; }
     public bool OnCanvas { get; init; }
+    public bool OpensZExtract { get; init; }
 
     public double X
     {

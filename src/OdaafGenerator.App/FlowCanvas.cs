@@ -34,6 +34,12 @@ public sealed class FlowCanvas : Canvas
         typeof(FlowCanvas),
         new PropertyMetadata(null, (d, _) => ((FlowCanvas)d).Restyle()));
 
+    public static readonly DependencyProperty EdgesProperty = DependencyProperty.Register(
+        nameof(Edges),
+        typeof(IReadOnlyList<GraphEdge>),
+        typeof(FlowCanvas),
+        new PropertyMetadata(null, (d, _) => ((FlowCanvas)d).Rebuild()));
+
     public event EventHandler<FunctionCard>? CardChosen;
     public event EventHandler? DragCompleted;
 
@@ -47,6 +53,12 @@ public sealed class FlowCanvas : Canvas
     {
         get => (string?)GetValue(SelectedSyntaxPathProperty);
         set => SetValue(SelectedSyntaxPathProperty, value);
+    }
+
+    public IReadOnlyList<GraphEdge>? Edges
+    {
+        get => (IReadOnlyList<GraphEdge>?)GetValue(EdgesProperty);
+        set => SetValue(EdgesProperty, value);
     }
 
     public void Reveal(string syntaxPath)
@@ -68,14 +80,14 @@ public sealed class FlowCanvas : Canvas
         if (cards is null)
             return;
 
-        foreach (var (from, to) in XmlScene.Edges)
+        foreach (var edge in Edges ?? [])
         {
             var line = new Line
             {
                 Stroke = new SolidColorBrush(Color.FromRgb(0x98, 0xA2, 0xB3)),
                 StrokeThickness = 1.6
             };
-            _lines.Add((from, to, line));
+            _lines.Add((edge.From, edge.To, line));
             Children.Add(line);
         }
 

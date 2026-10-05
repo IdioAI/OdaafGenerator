@@ -32,6 +32,16 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private IReadOnlyList<ProjectEntry> _projects = [];
     private IReadOnlyList<FunctionCard> _cards = [];
     private IReadOnlyList<SearchHit> _hits = [];
+    private string _contextId = OdaafFileContext.Id;
+    private bool _showingZExtract;
+    private string _indexSummary = "";
+    private string _canvasTitle = "文件菜单";
+    private IReadOnlyList<GraphEdge> _canvasEdges = [];
+    private IReadOnlyList<FunctionCard> _menuCards = [];
+    private IReadOnlyList<GraphEdge> _menuEdges = [];
+    private IReadOnlyList<FunctionCard> _zCards = [];
+    private IReadOnlyList<GraphEdge> _zEdges = [];
+    private FunctionCard? _importCard;
 
     public MainViewModel()
     {
@@ -91,7 +101,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public FunctionCard? SelectedCard
     {
         get => _selectedCard;
-        set => Set(ref _selectedCard, value);
+        set
+        {
+            if (!Set(ref _selectedCard, value))
+                return;
+            OnPropertyChanged(nameof(CanEnterZ));
+        }
     }
 
     public IReadOnlyList<ProjectEntry> Projects
@@ -112,6 +127,55 @@ public sealed class MainViewModel : INotifyPropertyChanged
         private set => Set(ref _hits, value);
     }
 
+    public string ContextId
+    {
+        get => _contextId;
+        private set
+        {
+            if (!Set(ref _contextId, value))
+                return;
+            OnPropertyChanged(nameof(IsIndexContext));
+            OnPropertyChanged(nameof(IsOdaafContext));
+            OnPropertyChanged(nameof(CanEnterZ));
+        }
+    }
+
+    public bool IsIndexContext => ContextId == IndexContext.Id;
+    public bool IsOdaafContext => ContextId == OdaafFileContext.Id;
+
+    public bool ShowingZExtract
+    {
+        get => _showingZExtract;
+        private set
+        {
+            if (!Set(ref _showingZExtract, value))
+                return;
+            OnPropertyChanged(nameof(CanEnterZ));
+        }
+    }
+
+    public bool CanEnterZ => IsOdaafContext && !ShowingZExtract && SelectedCard?.OpensZExtract == true;
+
+    public string CanvasTitle
+    {
+        get => _canvasTitle;
+        private set => Set(ref _canvasTitle, value);
+    }
+
+    public string IndexSummary
+    {
+        get => _indexSummary;
+        private set => Set(ref _indexSummary, value);
+    }
+
+    public IReadOnlyList<GraphEdge> CanvasEdges
+    {
+        get => _canvasEdges;
+        private set => Set(ref _canvasEdges, value);
+    }
+
+    public IReadOnlyList<FunctionCard> MenuCards => _menuCards;
+
     public void Load()
     {
         try
@@ -127,21 +191,38 @@ public sealed class MainViewModel : INotifyPropertyChanged
             if (!File.Exists(project.OdaafPath))
                 throw new FileNotFoundException("工程索引里的 odaaf 不存在。", project.OdaafPath);
 
-            var (projects, rows) = DeclarationStore.Load(project.DatabasePath);
-            _catalog = Catalog.Create(projects, rows);
+            var (projects, rows, host) = DeclarationStore.Load(project.DatabasePath);
+            _catalog = Catalog.Create(projects, rows, host);
             _layout = LayoutStore.Load(LayoutPath);
             Projects = _catalog.Projects;
-            Cards = _catalog.BuildXmlContext(_layout);
-            SelectedCard = Cards.FirstOrDefault();
-            Status = $"{project.Name}。已加载 {projects.Count} 个项目，焦点声明 {rows.Count} 条。XML 上下文 {Cards.Count} 个函数。本体 {project.GraphVersion}。";
+            _zCards = _catalog.BuildXmlContext(_layout).ToList();
+            _zEdges = XmlScene.Edges.Select(edge => new GraphEdge(edge.From, edge.To)).ToList();
+            (_menuCards, _menuEdges) = FileMenu.Build(_catalog, _layout);
+            _importCard = _menuCards.FirstOrDefault(card => card.OpensZExtract);
+            OnPropertyChanged(nameof(MenuCards));
+            var focusNames = Projects.Where(item => item.IsFocus).Select(item => item.Name);
+            IndexSummary =
+                $"数据库\n{project.DatabasePath}\n\n源码\n{project.SourceRoot}\n\n声明 {rows.Count} 条，项目 {projects.Count} 个。\n焦点项目：{string.Join("、", focusNames)}。\n\n这里只看解析入库的结果，不打开函数枝图。";
+            ShowingZExtract = false;
+            ContextId = project.DefaultContextId == IndexContext.Id ? IndexContext.Id : OdaafFileContext.Id;
+            if (IsOdaafContext)
+                ShowMenuCanvas();
+            else
+                ShowIndexCanvas();
+            SelectedCard = IsOdaafContext ? _menuCards.FirstOrDefault() : null;
+            Status = $"{project.Name}。已加载 {projects.Count} 个项目，焦点声明 {rows.Count} 条。当前上下文：{(IsOdaafContext ? "ODAAF" : "解析入库")}。";
         }
         catch (Exception ex)
         {
             _catalog = null;
             _layout = null;
             Projects = [];
-            Cards = [];
+            _menuCards = [];
+            _zCards = [];
+            OnPropertyChanged(nameof(MenuCards));
+            IndexSummary = "";
             SelectedCard = null;
+            ShowIndexCanvas();
             Status = ex is FileNotFoundException file && !string.IsNullOrEmpty(file.FileName)
                 ? $"{ex.Message} {file.FileName}"
                 : ex.Message;
@@ -166,14 +247,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public void SelectHit(SearchHit? hit)
     {
-        if (hit is null)
+        if (hit is null || !IsIndexContext)
             return;
-        if (hit.Level == SearchLevel.Function && hit.SyntaxPath is not null)
-        {
-            SelectSymbol(hit.SyntaxPath);
-            return;
-        }
-
         if (hit.Level == SearchLevel.Project && hit.Subtitle.StartsWith("辅助", StringComparison.Ordinal))
             Status = $"{hit.Title} 是辅助工程，目录只到项目。";
         else
@@ -182,52 +257,112 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public void SelectTree(object? item)
     {
+        if (!IsIndexContext)
+            return;
         switch (item)
         {
             case ProjectEntry project when !project.IsFocus:
                 Status = $"{project.Name} 是辅助工程，目录只到项目。";
                 break;
-            case CodeSymbol symbol when SymbolKinds.IsFunction(symbol.Kind):
-                SelectSymbol(symbol.SyntaxPath);
+            case CodeSymbol symbol:
+                Status = $"{symbol.SimpleName}  {symbol.SyntaxPath}";
+                break;
+            case TypeEntry type:
+                Status = $"{type.Name}  {type.SyntaxPath}";
+                break;
+            case NamespaceEntry space:
+                Status = $"{space.Name}  {space.Project}";
                 break;
         }
+    }
+
+    public void SelectMenu(FunctionCard? card)
+    {
+        if (card is null)
+            return;
+        ShowingZExtract = false;
+        ShowMenuCanvas();
+        SelectedCard = _menuCards.FirstOrDefault(item => item.SyntaxPath == card.SyntaxPath) ?? card;
+        Status = $"{SelectedCard.StepLabel}  {SelectedCard.Name}";
+    }
+
+    public void ShowIndex()
+    {
+        ContextId = IndexContext.Id;
+        SelectedCard = null;
+        ShowIndexCanvas();
+        Status = "解析入库。目录可查项目、命名空间、类、函数。";
+    }
+
+    public void ShowOdaaf()
+    {
+        ContextId = OdaafFileContext.Id;
+        if (ShowingZExtract)
+            ShowZCanvas();
+        else
+            ShowMenuCanvas();
+        Status = ShowingZExtract ? "ODAAF · Z 抽出" : "ODAAF · 文件菜单";
+    }
+
+    public void EnterZExtract()
+    {
+        if (!CanEnterZ)
+            return;
+        _importCard = SelectedCard;
+        ShowingZExtract = true;
+        ShowZCanvas();
+        Status = "ODAAF · 导入XML 下的 Z 抽出";
+    }
+
+    public void BackToFileMenu()
+    {
+        ShowingZExtract = false;
+        ShowMenuCanvas();
+        SelectedCard = _importCard ?? _menuCards.FirstOrDefault(card => card.OpensZExtract);
+        Status = "ODAAF · 文件菜单";
     }
 
     public void SaveLayout()
     {
         if (_layout is null)
             return;
-        foreach (var card in Cards)
+        foreach (var card in _menuCards.Concat(_zCards))
             _layout.Upsert(card);
         if (SelectedCard is { OnCanvas: false })
             _layout.Upsert(SelectedCard);
         LayoutStore.Save(LayoutPath, _layout);
     }
 
-    private void SelectSymbol(string syntaxPath)
+    private void ShowMenuCanvas()
     {
-        if (_catalog is null || _layout is null)
-            return;
-        var onCanvas = Cards.FirstOrDefault(card => card.SyntaxPath == syntaxPath);
-        if (onCanvas is not null)
-        {
-            SelectedCard = onCanvas;
-            Status = $"{onCanvas.StepLabel}  {onCanvas.Name}";
-            return;
-        }
-
-        var symbol = _catalog.Find(syntaxPath);
-        if (symbol is null || !SymbolKinds.IsFunction(symbol.Kind))
-            return;
-        SelectedCard = _catalog.BranchFor(symbol, _layout);
-        Status = $"{symbol.SimpleName} 不在 XML 上下文本体图上。枝图仍可看。";
+        Cards = _menuCards;
+        CanvasEdges = _menuEdges;
+        CanvasTitle = "文件菜单";
     }
 
-    private void Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
+    private void ShowZCanvas()
+    {
+        Cards = _zCards;
+        CanvasEdges = _zEdges;
+        CanvasTitle = "导入XML · Z 抽出";
+    }
+
+    private void ShowIndexCanvas()
+    {
+        Cards = [];
+        CanvasEdges = [];
+        CanvasTitle = "解析入库";
+    }
+
+    private void OnPropertyChanged(string name) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    private bool Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
-            return;
+            return false;
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        return true;
     }
 }

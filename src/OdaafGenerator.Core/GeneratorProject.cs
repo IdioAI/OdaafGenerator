@@ -2,6 +2,8 @@ using System.Xml.Linq;
 
 namespace OdaafGenerator.Core;
 
+public sealed record GeneratorContext(string Id, string Name);
+
 public sealed class GeneratorProject
 {
     public const string FileName = "rapidcad-zextract.ogproj";
@@ -16,6 +18,8 @@ public sealed class GeneratorProject
     public required string OdaafPath { get; init; }
     public required string OdaafUri { get; init; }
     public required string GraphVersion { get; init; }
+    public required string DefaultContextId { get; init; }
+    public required IReadOnlyList<GeneratorContext> Contexts { get; init; }
 
     public string SolutionPath => Path.Combine(SourceRoot, SolutionFile);
 
@@ -57,8 +61,21 @@ public sealed class GeneratorProject
             SolutionFile = solution,
             OdaafPath = Resolve(directory, odaaf),
             OdaafUri = Attr(root.Element(Ns + "Odaaf"), "uri") ?? "",
-            GraphVersion = Attr(root.Element(Ns + "Odaaf"), "graphVersion") ?? ""
+            GraphVersion = Attr(root.Element(Ns + "Odaaf"), "graphVersion") ?? "",
+            DefaultContextId = Attr(root.Element(Ns + "Contexts"), "default") ?? OdaafFileContext.Id,
+            Contexts = ReadContexts(root)
         };
+    }
+
+    private static IReadOnlyList<GeneratorContext> ReadContexts(XElement root)
+    {
+        var parent = root.Element(Ns + "Contexts");
+        if (parent is null)
+            return [];
+        return parent.Elements(Ns + "Context")
+            .Select(element => new GeneratorContext(Attr(element, "id") ?? "", Attr(element, "name") ?? ""))
+            .Where(context => context.Id.Length > 0)
+            .ToList();
     }
 
     private static string Required(XElement root, string element, string attribute)
