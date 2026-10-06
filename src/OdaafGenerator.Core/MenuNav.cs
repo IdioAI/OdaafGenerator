@@ -23,7 +23,8 @@ public sealed class NavNode
         string? methodName = null,
         string? syntaxPath = null,
         CodeSymbol? symbol = null,
-        bool mainFlow = false)
+        bool mainFlow = false,
+        string? mark = null)
     {
         Title = title;
         Kind = kind;
@@ -31,6 +32,7 @@ public sealed class NavNode
         SyntaxPath = syntaxPath ?? symbol?.SyntaxPath;
         Symbol = symbol;
         MainFlow = mainFlow;
+        Mark = mark;
     }
 
     public string Title { get; }
@@ -39,10 +41,11 @@ public sealed class NavNode
     public string? SyntaxPath { get; }
     public CodeSymbol? Symbol { get; }
     public bool MainFlow { get; }
+    public string? Mark { get; }
     public ObservableCollection<NavNode> Children { get; } = [];
     public bool CallsLoaded { get; private set; }
 
-    public string Hint => Kind switch
+    public string Hint => Mark ?? Kind switch
     {
         Group => "分组",
         Menu => "菜单",
@@ -118,26 +121,53 @@ public static class MenuNavTree
             return;
         node.Children.Clear();
         var layer = CallLayerGraph.Expand(node.Symbol, sourceRoot, catalog);
+        var work = layer.Calls.Where(call => call.Kind != CallKind.System).ToList();
         foreach (var phase in Enum.GetValues<PatternAPhase>())
         {
-            var calls = layer.Calls.Where(call => call.Phase == phase).ToList();
+            var calls = work.Where(call => call.Phase == phase).ToList();
             if (calls.Count == 0)
                 continue;
             var main = phase == PatternAPhase.Execute;
             var bucket = new NavNode(PatternA.Title(phase, layer.Menu), NavNode.Phase, mainFlow: main);
             foreach (var call in calls)
-            {
-                var symbol = call.SyntaxPath is null ? null : catalog.Find(call.SyntaxPath);
-                var child = new NavNode(call.Name, NavNode.Function, call.Name, call.SyntaxPath, symbol, mainFlow: main);
-                if (main && symbol is not null)
-                    child.Children.Add(NavNode.Placeholder());
-                bucket.Children.Add(child);
-            }
-
+                bucket.Children.Add(FunctionChild(catalog, call, main));
             node.Children.Add(bucket);
         }
 
+        var systems = layer.Calls.Where(call => call.Kind == CallKind.System).ToList();
+        if (systems.Count > 0)
+        {
+            var systemNode = new NavNode("系统", NavNode.Phase, mark: "不展开");
+            foreach (var call in systems)
+                systemNode.Children.Add(FunctionChild(catalog, call, main: false));
+            node.Children.Add(systemNode);
+        }
+
         node.MarkLoaded();
+    }
+
+    private static NavNode FunctionChild(Catalog catalog, DirectCall call, bool main)
+    {
+        var symbol = call.Kind == CallKind.Domain && call.SyntaxPath is not null
+            ? catalog.Find(call.SyntaxPath)
+            : null;
+        var mark = call.Kind switch
+        {
+            CallKind.System => "系统",
+            CallKind.Unindexed => "未收入",
+            _ => null
+        };
+        var child = new NavNode(
+            call.Name,
+            NavNode.Function,
+            call.Name,
+            call.SyntaxPath,
+            symbol,
+            mainFlow: main && call.Kind != CallKind.System,
+            mark: mark);
+        if (main && call.Kind == CallKind.Domain && symbol is not null)
+            child.Children.Add(NavNode.Placeholder());
+        return child;
     }
 
     public static NavNode? FindHandler(IEnumerable<NavNode> nodes, string methodName)

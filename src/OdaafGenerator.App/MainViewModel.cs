@@ -329,6 +329,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
                     Y = 36
                 }
             ];
+            FunctionBrief.Apply(NavCards[0]);
             NavEdges = [];
             SelectedCard = NavCards[0];
             Status = $"{node.Title} 是修饰，不进入主流程。";
@@ -355,6 +356,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 X = 24,
                 Y = 36 + index * 96
             }).ToList();
+            foreach (var card in NavCards)
+                FunctionBrief.Apply(card);
             NavEdges = [];
             SelectedCard = NavCards.FirstOrDefault();
             Status = node.MainFlow

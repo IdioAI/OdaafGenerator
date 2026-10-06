@@ -1,6 +1,6 @@
 namespace OdaafGenerator.Core;
 
-public sealed record ParameterLeaf(string Type, string Name);
+public sealed record ParameterLeaf(string Type, string Name, string Meaning = "");
 
 public static class SignatureParser
 {

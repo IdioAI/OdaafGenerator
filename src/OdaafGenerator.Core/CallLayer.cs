@@ -11,7 +11,10 @@ public sealed record DirectCall(
     string? FilePath,
     int StartLine,
     bool Resolved,
-    PatternAPhase Phase);
+    PatternAPhase Phase,
+    CallKind Kind,
+    string Project,
+    string Purpose);
 
 public sealed class CallLayerGraph
 {
@@ -22,12 +25,18 @@ public sealed class CallLayerGraph
     public (IReadOnlyList<FunctionCard> Cards, IReadOnlyList<GraphEdge> Edges) Cards(LayoutFile layout)
     {
         var placedCaller = layout.Find(Caller.SyntaxPath);
+        var callerNote = FlowNotes.Find(Caller.SyntaxPath, Caller.SimpleName);
         var caller = FunctionCard.OffCanvas(Caller, placedCaller, onCanvas: true, stepLabel: "执行");
         caller.X = placedCaller?.X ?? 24;
         caller.Y = placedCaller?.Y ?? 36;
+        caller.Purpose = callerNote?.Purpose ?? "";
+        caller.Documents = callerNote?.Documents ?? "";
+        caller.Materials = FlowNotes.WithMeanings(Caller.SyntaxPath, Caller.SimpleName, caller.Materials);
+        FunctionBrief.Apply(caller);
         var cards = new List<FunctionCard> { caller };
         var edges = new List<GraphEdge>();
-        var lanes = Calls.GroupBy(call => call.Phase).ToDictionary(group => group.Key, group => group.ToList());
+        var work = Calls.Where(call => call.Kind != CallKind.System).ToList();
+        var lanes = work.GroupBy(call => call.Phase).ToDictionary(group => group.Key, group => group.ToList());
         if (lanes.TryGetValue(PatternAPhase.Execute, out var execute))
             AddLane(cards, edges, caller, execute, PatternAPhase.Execute, 280, main: true, Menu, layout);
         var column = 560;
@@ -38,6 +47,10 @@ public sealed class CallLayerGraph
             AddLane(cards, edges, caller, lane, phase, column, main: false, Menu, layout);
             column += 230;
         }
+
+        var systems = Calls.Where(call => call.Kind == CallKind.System).ToList();
+        if (systems.Count > 0)
+            AddLane(cards, edges, caller, systems, PatternAPhase.Execute, column, main: false, Menu, layout, system: true);
 
         return (cards, edges);
     }
@@ -51,11 +64,21 @@ public sealed class CallLayerGraph
         foreach (var site in sites)
         {
             var symbol = catalog.ResolveCall(site.Name, caller.TypeSyntaxPath);
-            if (FrameworkCalls.Exclude(site.Name, site.Receiver, symbol) || !seen.Add(site.Phase + ":" + site.Name))
+            var system = SystemCalls.TryDescribe(site.Name, site.Receiver, symbol, caller.TypeSyntaxPath, out var systemPurpose);
+            if (!system && (FrameworkCalls.Exclude(site.Name, site.Receiver, symbol) || !seen.Add(site.Phase + ":" + site.Name)))
                 continue;
+            if (system && !seen.Add(site.Phase + ":" + site.Name))
+                continue;
+            if (system)
+            {
+                calls.Add(new DirectCall(site.Name, null, null, null, 0, false, site.Phase, CallKind.System, "系统", systemPurpose));
+                continue;
+            }
+
+            var note = FlowNotes.Find(symbol?.SyntaxPath, site.Name);
             calls.Add(symbol is null
-                ? new DirectCall(site.Name, null, null, null, 0, false, site.Phase)
-                : new DirectCall(symbol.SimpleName, symbol.SyntaxPath, symbol.Signature, symbol.FilePath, symbol.StartLine, true, site.Phase));
+                ? new DirectCall(site.Name, null, null, null, 0, false, site.Phase, CallKind.Unindexed, "", note?.Purpose ?? "")
+                : new DirectCall(symbol.SimpleName, symbol.SyntaxPath, symbol.Signature, symbol.FilePath, symbol.StartLine, true, site.Phase, CallKind.Domain, symbol.Project, note?.Purpose ?? ""));
         }
 
         return new CallLayerGraph { Caller = caller, Calls = calls, Menu = menu };
@@ -70,32 +93,37 @@ public sealed class CallLayerGraph
         int column,
         bool main,
         bool menu,
-        LayoutFile layout)
+        LayoutFile layout,
+        bool system = false)
     {
         for (var i = 0; i < lane.Count; i++)
         {
             var call = lane[i];
-            var path = (call.SyntaxPath ?? caller.SyntaxPath + "." + call.Name) + "@" + phase;
+            var path = (call.SyntaxPath ?? caller.SyntaxPath + "." + call.Name) + "@" + (system ? "system" : phase.ToString());
             var placed = layout.Find(path);
+            var note = call.Kind == CallKind.Unindexed ? "未收入本期索引。" : null;
             cards.Add(new FunctionCard
             {
                 SyntaxPath = path,
                 Name = call.Name,
-                StepLabel = PatternA.Title(phase, menu),
-                Project = caller.Project,
+                StepLabel = system ? "系统" : PatternA.Title(phase, menu),
+                Project = call.Project,
                 Signature = call.Signature ?? "",
                 FilePath = call.FilePath ?? "",
                 StartLine = call.StartLine,
                 EndLine = call.StartLine,
-                Materials = SignatureParser.Parameters(call.Signature),
-                Note = call.Resolved ? null : "这一层只列出名字，索引里没有对上。",
+                Materials = FlowNotes.WithMeanings(call.SyntaxPath, call.Name, SignatureParser.Parameters(call.Signature)),
+                Purpose = call.Purpose,
+                Note = note,
                 OnCanvas = true,
-                MainFlow = main,
+                MainFlow = main && call.Kind != CallKind.System,
+                WritesStructure = call.Kind != CallKind.System,
                 X = column,
                 Y = 36 + i * 96,
-                Formal = placed?.Formal ?? "",
+                Formal = call.Kind == CallKind.System ? "" : placed?.Formal ?? "",
                 Final = placed?.Final ?? ""
             });
+            FunctionBrief.Apply(cards[^1]);
             if (main)
                 edges.Add(new GraphEdge(caller.SyntaxPath, path));
         }

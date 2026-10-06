@@ -182,7 +182,7 @@
           <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="12,4,12,12">
               <TextBlock TextWrapping="Wrap" Foreground="#667085"
-                         Text="动因是方法名，物因是参数。结构因和极因先空着。"/>
+                         Text="动因下面是功能说明，物因下面是参数含义。结构因先空着。系统调用只有说明。"/>
               <StackPanel Margin="0,10,0,0" DataContext="{Binding SelectedCard}">
                 <StackPanel.Style>
                   <Style TargetType="StackPanel">
@@ -194,7 +194,31 @@
                   </Style>
                 </StackPanel.Style>
                 <TextBlock Text="动因" Foreground="#1D4E89" FontWeight="SemiBold"/>
-                <TextBlock Text="{Binding Name}" FontSize="18" Margin="0,2,0,8" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding Name}" FontSize="18" Margin="0,2,0,4" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding Purpose}" TextWrapping="Wrap" Margin="0,0,0,8">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="Visibility" Value="Visible"/>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding Purpose}" Value="">
+                          <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Text="{Binding Documents}" TextWrapping="Wrap" Margin="0,0,0,8" Foreground="#3F6212">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="Visibility" Value="Visible"/>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding Documents}" Value="">
+                          <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
                 <TextBlock Text="{Binding SyntaxPath}" Foreground="#667085" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,10"/>
                 <TextBlock Text="物因" Foreground="#1D4E89" FontWeight="SemiBold"/>
                 <TextBlock Text="（无参数）" Margin="0,4,0,4" Foreground="#667085">
@@ -216,16 +240,42 @@
                         <Run Text="{Binding Type, Mode=OneWay}" FontWeight="SemiBold"/>
                         <Run Text=" "/>
                         <Run Text="{Binding Name, Mode=OneWay}"/>
+                        <Run Text="  "/>
+                        <Run Text="{Binding Meaning, Mode=OneWay}" Foreground="#667085"/>
                       </TextBlock>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <TextBlock Text="结构因" Foreground="#1D4E89" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Formal, UpdateSourceTrigger=LostFocus}" AcceptsReturn="True"
-                         MinHeight="56" TextWrapping="Wrap" Margin="0,4,0,8" LostFocus="Cause_LostFocus"/>
-                <TextBlock Text="极因" Foreground="#1D4E89" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Final, UpdateSourceTrigger=LostFocus}" AcceptsReturn="True"
-                         MinHeight="56" TextWrapping="Wrap" Margin="0,4,0,8" LostFocus="Cause_LostFocus"/>
+                <StackPanel>
+                  <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                      <Setter Property="Visibility" Value="Visible"/>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding WritesStructure}" Value="False">
+                          <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </StackPanel.Style>
+                  <TextBlock Text="结构因" Foreground="#1D4E89" FontWeight="SemiBold"/>
+                  <TextBox Text="{Binding Formal, UpdateSourceTrigger=LostFocus}" AcceptsReturn="True"
+                           MinHeight="56" TextWrapping="Wrap" Margin="0,4,0,8" LostFocus="Cause_LostFocus"/>
+                  <TextBlock Text="极因" Foreground="#1D4E89" FontWeight="SemiBold"/>
+                  <TextBox Text="{Binding Final, UpdateSourceTrigger=LostFocus}" AcceptsReturn="True"
+                           MinHeight="56" TextWrapping="Wrap" Margin="0,4,0,8" LostFocus="Cause_LostFocus"/>
+                </StackPanel>
+                <TextBlock Text="系统调用不写结构因。" Foreground="#667085" Margin="0,0,0,8">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="Visibility" Value="Collapsed"/>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding WritesStructure}" Value="False">
+                          <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
                 <TextBlock Text="{Binding Note}" TextWrapping="Wrap" Margin="0,0,0,8" Foreground="#667085"/>
                 <TextBlock Text="{Binding Location}" TextWrapping="Wrap" FontSize="11" Foreground="#667085"/>
                 <TextBlock Text="{Binding Signature}" TextWrapping="Wrap" FontSize="11" Margin="0,6,0,0"/>

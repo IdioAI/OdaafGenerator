@@ -20,11 +20,14 @@ public sealed class FunctionCard : INotifyPropertyChanged
     public required string FilePath { get; init; }
     public required int StartLine { get; init; }
     public required int EndLine { get; init; }
-    public required IReadOnlyList<ParameterLeaf> Materials { get; init; }
+    public required IReadOnlyList<ParameterLeaf> Materials { get; set; }
+    public string Purpose { get; set; } = "";
+    public string Documents { get; set; } = "";
     public string? Note { get; init; }
     public bool OnCanvas { get; init; }
     public bool OpensZExtract { get; init; }
     public bool MainFlow { get; init; } = true;
+    public bool WritesStructure { get; init; } = true;
 
     public double X
     {
