@@ -233,6 +233,8 @@ public class CallLayerTests
             Materials = SignatureParser.Parameters("private void TryArchiveSemiAutoAssets(string reason, string xmlFilePath, string originalPcbPath, string generatedZPcbPath)")
         };
         FunctionBrief.Apply(card);
+        Assert.Equal("归档现场", card.FriendlyName);
+        Assert.Equal("执行：归档现场", card.StepCaption);
         Assert.Contains("归档", card.Purpose);
         Assert.Contains("归档原因", card.Materials.Single(leaf => leaf.Name == "reason").Meaning);
         Assert.Contains("写入前", card.Materials.Single(leaf => leaf.Name == "originalPcbPath").Meaning);

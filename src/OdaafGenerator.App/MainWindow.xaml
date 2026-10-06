@@ -182,7 +182,7 @@
           <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="12,4,12,12">
               <TextBlock TextWrapping="Wrap" Foreground="#667085"
-                         Text="动因下面是功能说明，物因下面是参数含义。结构因先空着。系统调用只有说明。"/>
+                         Text="动因下面先是中文名，再是功能说明。物因下面是参数含义。结构因先空着。系统调用只有说明。"/>
               <StackPanel Margin="0,10,0,0" DataContext="{Binding SelectedCard}">
                 <StackPanel.Style>
                   <Style TargetType="StackPanel">
@@ -194,7 +194,19 @@
                   </Style>
                 </StackPanel.Style>
                 <TextBlock Text="动因" Foreground="#1D4E89" FontWeight="SemiBold"/>
-                <TextBlock Text="{Binding Name}" FontSize="18" Margin="0,2,0,4" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding Name}" FontSize="18" Margin="0,2,0,2" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding FriendlyName}" FontSize="15" Foreground="#1D4E89" Margin="0,0,0,4" TextWrapping="Wrap">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                      <Setter Property="Visibility" Value="Visible"/>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding FriendlyName}" Value="">
+                          <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
                 <TextBlock Text="{Binding Purpose}" TextWrapping="Wrap" Margin="0,0,0,8">
                   <TextBlock.Style>
                     <Style TargetType="TextBlock">

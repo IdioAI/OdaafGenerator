@@ -2,7 +2,60 @@ namespace OdaafGenerator.Core;
 
 public static class FlowNotes
 {
-    public sealed record Note(string Purpose, IReadOnlyDictionary<string, string> Parameters, string Documents);
+    public sealed record Note(string Purpose, IReadOnlyDictionary<string, string> Parameters, string Documents, string Title = "");
+
+    private static readonly Dictionary<string, string> Titles = new(StringComparer.Ordinal)
+    {
+        ["ExecuteSemiAutoAddGroupingInfo"] = "加载配对",
+        ["ExecuteWriteParamsToPcb"] = "参数写入",
+        ["TryArchiveSemiAutoAssets"] = "归档现场",
+        ["BeginSemiAutoWorkflow"] = "开始顺序",
+        ["ApplySemiAutoSanitizeAndArchive"] = "清洗归档",
+        ["EndSemiAutoWorkflow"] = "结束顺序",
+        ["SemiExportPcbFile"] = "导出PCB",
+        ["GetFusionContextForSemiAuto"] = "取半自动融合",
+        ["GetFusionContextForActive"] = "取当前融合",
+        ["GetActiveContext"] = "取当前文档",
+        ["GetOrCreateContextByFilePath"] = "按路径取文档",
+        ["SetActiveContext"] = "设为当前",
+        ["ClearContextData"] = "清空上下文",
+        ["NavigateToView"] = "打开视图",
+        ["EnsureContextLogicLayer"] = "备好逻辑层",
+        ["SwitchToContext"] = "切换上下文",
+        ["ReportSemiAutoProgress"] = "报告进度",
+        ["ImportXmlFromFile"] = "导入XML",
+        ["PrepareXmlAndPcbForProcessing"] = "补齐文件",
+        ["CreateFusionContextAndMatchComponents"] = "融合匹配",
+        ["PerformLandMatchingAndGrouping"] = "配盘分组",
+        ["GetAllPlacements"] = "取元件放置",
+        ["SetParseResult"] = "记下解析",
+        ["LoadPcbDataFromParseResult"] = "装入PCB",
+        ["MarkDataLoaded"] = "标记已装入",
+        ["UpdateFilePath"] = "记下路径",
+        ["BuildSanitizeLevelsFromProcessOptions"] = "转清洗级别",
+        ["FormatSemiAutoSanitizeRules"] = "写下清洗规则",
+        ["FormatSemiAutoWriteRules"] = "写下写入规则",
+        ["SemiAutoWorkflowEnter"] = "标记开始",
+        ["SemiAutoWorkflowLeave"] = "标记结束",
+        ["EnsureToolsBound"] = "绑定刀具",
+        ["SeedStubCatalogFromPcb"] = "播种算法",
+        ["DisableCustomModeWhenNotAllowed"] = "关闭自定义",
+        ["TryGetFirstCriterion8161And8164FromPcb"] = "读取背钻底稿",
+        ["AddBackdrillParametersToPadsAsync"] = "写入背钻",
+        ["ApplyZeroZExtractSearchRangesIfEnabled"] = "搜索范围填零",
+        ["ShowHalfAutoGroupingDetails"] = "显示分组",
+        ["NotifyNewSpecCreatorToRefresh"] = "刷新视图",
+        ["ExecuteAddZExtractionToCurrentPcbAsync"] = "放置Z抽出",
+        ["ApplyExpansion"] = "扩展ISU",
+        ["ZCorrectionPlacementService.Place"] = "放置Z补正",
+        ["ToZCorrectionPlaceOptions"] = "转补正选项",
+        ["ApplyToTagParams"] = "改写算法项",
+        ["BuildCreateOrGetZExtractCriterionItemCallback"] = "准备算法项",
+        ["UpdateNodeTextRecursive"] = "写回文本",
+        ["SavePcbFileDirectly"] = "直接保存",
+        ["ShowZExtractionPlacementFailureMessage"] = "提示失败",
+        ["ReadVersionFromFile"] = "读出版本"
+    };
 
     private static readonly Dictionary<string, Note> ByName = new(StringComparer.Ordinal)
     {
@@ -411,16 +464,25 @@ public static class FlowNotes
             if (dot > 0)
             {
                 var typeDot = head.LastIndexOf('.', dot - 1);
-                if (typeDot >= 0 && ByName.TryGetValue(head[(typeDot + 1)..], out var qualified))
-                    return qualified;
+                if (typeDot >= 0)
+                {
+                    var qualifiedName = head[(typeDot + 1)..];
+                    if (ByName.TryGetValue(qualifiedName, out var qualified))
+                        return WithTitle(qualifiedName, qualified);
+                }
             }
 
             if (ByName.TryGetValue(simple, out var byPath))
-                return byPath;
+                return WithTitle(simple, byPath);
         }
 
-        return ByName.TryGetValue(name, out var note) ? note : null;
+        return ByName.TryGetValue(name, out var note) ? WithTitle(name, note) : null;
     }
+
+    private static Note WithTitle(string key, Note note) =>
+        string.IsNullOrEmpty(note.Title) && Titles.TryGetValue(key, out var title)
+            ? note with { Title = title }
+            : note;
 
     public static IReadOnlyList<ParameterLeaf> WithMeanings(string? syntaxPath, string name, IReadOnlyList<ParameterLeaf> leaves)
     {

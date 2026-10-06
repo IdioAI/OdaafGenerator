@@ -21,7 +21,11 @@ public sealed class FunctionCard : INotifyPropertyChanged
     public required int StartLine { get; init; }
     public required int EndLine { get; init; }
     public required IReadOnlyList<ParameterLeaf> Materials { get; set; }
+    public string FriendlyName { get; set; } = "";
     public string Purpose { get; set; } = "";
+
+    public string StepCaption =>
+        string.IsNullOrWhiteSpace(FriendlyName) ? StepLabel : $"{StepLabel}：{FriendlyName}";
     public string Documents { get; set; } = "";
     public string? Note { get; init; }
     public bool OnCanvas { get; init; }

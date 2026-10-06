@@ -10,7 +10,7 @@ namespace OdaafGenerator.App;
 public sealed class FlowCanvas : Canvas
 {
     private const double NodeWidth = 210;
-    private const double NodeHeight = 78;
+    private const double NodeHeight = 96;
 
     private readonly Dictionary<string, Border> _borders = new(StringComparer.Ordinal);
     private readonly List<(string From, string To, Line Line)> _lines = [];
@@ -111,9 +111,13 @@ public sealed class FlowCanvas : Canvas
     {
         var step = new TextBlock
         {
-            Text = card.StepLabel,
+            Text = card.StepCaption,
             FontSize = 11,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x70, 0x85))
+            Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x70, 0x85)),
+            TextWrapping = TextWrapping.Wrap,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            MaxHeight = 32,
+            ToolTip = card.StepCaption
         };
         var name = new TextBlock
         {

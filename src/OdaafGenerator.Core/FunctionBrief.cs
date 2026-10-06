@@ -5,6 +5,10 @@ public static class FunctionBrief
     public static void Apply(FunctionCard card)
     {
         var note = FlowNotes.Find(card.SyntaxPath, card.Name);
+        if (string.IsNullOrWhiteSpace(card.FriendlyName))
+            card.FriendlyName = note?.Title ?? "";
+        if (card.Project == "系统" && string.IsNullOrWhiteSpace(card.FriendlyName))
+            card.FriendlyName = SystemCalls.TitleOf(card.Name);
         if (string.IsNullOrWhiteSpace(card.Purpose))
             card.Purpose = note?.Purpose ?? "";
         if (string.IsNullOrWhiteSpace(card.Documents))

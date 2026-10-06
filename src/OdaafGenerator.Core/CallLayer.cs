@@ -119,7 +119,7 @@ public sealed class CallLayerGraph
                 MainFlow = main && call.Kind != CallKind.System,
                 WritesStructure = call.Kind != CallKind.System,
                 X = column,
-                Y = 36 + i * 96,
+                Y = 36 + i * 112,
                 Formal = call.Kind == CallKind.System ? "" : placed?.Formal ?? "",
                 Final = placed?.Final ?? ""
             });

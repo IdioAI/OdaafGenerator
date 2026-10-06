@@ -23,6 +23,21 @@ public static class SystemCalls
         ["Invoke"] = "切回界面线程再执行。"
     };
 
+    private static readonly Dictionary<string, string> Titles = new(StringComparer.Ordinal)
+    {
+        ["Min"] = "取较小值",
+        ["Max"] = "取较大值",
+        ["Parse"] = "文本转数",
+        ["Show"] = "弹出提示",
+        ["ShowDialog"] = "弹出参数窗",
+        ["IsNullOrEmpty"] = "检查空串",
+        ["IsNullOrWhiteSpace"] = "检查空白",
+        ["Invoke"] = "切回界面"
+    };
+
+    public static string TitleOf(string name) =>
+        Titles.TryGetValue(name, out var title) ? title : "";
+
     public static bool TryDescribe(string name, string? receiver, CodeSymbol? symbol, string? callerType, out string purpose)
     {
         purpose = "";
