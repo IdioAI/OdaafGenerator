@@ -55,6 +55,69 @@ public sealed class CallLayerGraph
         return (cards, edges);
     }
 
+    public (IReadOnlyList<FunctionCard> Cards, IReadOnlyList<GraphEdge> Edges) Segments(LayoutFile layout)
+    {
+        var (cards, edges, _) = Begin(layout);
+        var execute = Calls.Where(call => call.Kind != CallKind.System && call.Phase == PatternAPhase.Execute).ToList();
+        string? previous = null;
+        var y = 36;
+        foreach (var name in LayerMarkdown.Segments(Caller.SimpleName, this))
+        {
+            var members = execute.Where(call => FlowGroups.NameOf(Caller.SimpleName, call.SyntaxPath, call.Name) == name).ToList();
+            var path = Caller.SyntaxPath + "@segment:" + name;
+            var titles = members.Select(call => FlowNotes.Find(call.SyntaxPath, call.Name)?.Title ?? call.Name);
+            cards.Add(new FunctionCard
+            {
+                SyntaxPath = path,
+                Name = name,
+                FriendlyName = name,
+                StepLabel = "执行",
+                Project = "",
+                Signature = "",
+                FilePath = "",
+                StartLine = 0,
+                EndLine = 0,
+                Materials = [],
+                Purpose = string.Join("、", titles),
+                OnCanvas = true,
+                MainFlow = true,
+                X = 280,
+                Y = y
+            });
+            if (previous is not null)
+                edges.Add(new GraphEdge(previous, path));
+            previous = path;
+            y += 112;
+        }
+
+        return (cards, edges);
+    }
+
+    public (IReadOnlyList<FunctionCard> Cards, IReadOnlyList<GraphEdge> Edges) SegmentDetail(LayoutFile layout, string segment)
+    {
+        var (cards, edges, caller) = Begin(layout);
+        var members = Calls.Where(call =>
+            call.Kind != CallKind.System
+            && call.Phase == PatternAPhase.Execute
+            && FlowGroups.NameOf(Caller.SimpleName, call.SyntaxPath, call.Name) == segment).ToList();
+        AddLane(cards, edges, caller, members, PatternAPhase.Execute, 280, main: true, Menu, layout);
+        return (cards, edges);
+    }
+
+    private (List<FunctionCard> Cards, List<GraphEdge> Edges, FunctionCard CallerCard) Begin(LayoutFile layout)
+    {
+        var placedCaller = layout.Find(Caller.SyntaxPath);
+        var callerNote = FlowNotes.Find(Caller.SyntaxPath, Caller.SimpleName);
+        var caller = FunctionCard.OffCanvas(Caller, placedCaller, onCanvas: true, stepLabel: "执行");
+        caller.X = placedCaller?.X ?? 24;
+        caller.Y = placedCaller?.Y ?? 36;
+        caller.Purpose = callerNote?.Purpose ?? "";
+        caller.Documents = callerNote?.Documents ?? "";
+        caller.Materials = FlowNotes.WithMeanings(Caller.SyntaxPath, Caller.SimpleName, caller.Materials);
+        FunctionBrief.Apply(caller);
+        return ([caller], [], caller);
+    }
+
     public static CallLayerGraph Expand(CodeSymbol caller, string sourceRoot, Catalog catalog)
     {
         var menu = FrameworkCalls.IsMenuHandler(caller.SimpleName);

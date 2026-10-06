@@ -44,6 +44,25 @@ public sealed class NavNode
     public string? Mark { get; }
     public ObservableCollection<NavNode> Children { get; } = [];
     public bool CallsLoaded { get; private set; }
+    public NavNode? Origin { get; private set; }
+    public bool Expanded { get; set; }
+
+    public NavNode AsView()
+    {
+        var copy = new NavNode(Title, Kind, MethodName, SyntaxPath, Symbol, MainFlow, Mark);
+        copy.Origin = this;
+        if (CallsLoaded)
+            copy.MarkLoaded();
+        return copy;
+    }
+
+    public NavNode CloneBranch()
+    {
+        var copy = AsView();
+        foreach (var child in Children)
+            copy.Children.Add(child.CloneBranch());
+        return copy;
+    }
 
     public string Hint => Mark ?? Kind switch
     {
@@ -115,12 +134,94 @@ public static class MenuNavTree
         return menu;
     }
 
+    public static IReadOnlyList<NavNode> Filter(IReadOnlyList<NavNode> roots, string? query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return roots;
+        var text = query.Trim();
+        var result = new List<NavNode>();
+        foreach (var root in roots)
+        {
+            var copy = FilterNode(root, text);
+            if (copy is not null)
+                result.Add(copy);
+        }
+
+        return result;
+    }
+
+    public static bool Subsequence(string? text, string query)
+    {
+        if (string.IsNullOrEmpty(text))
+            return false;
+        var index = 0;
+        foreach (var wanted in query)
+        {
+            var found = false;
+            while (index < text.Length)
+            {
+                if (char.ToLowerInvariant(text[index]) == char.ToLowerInvariant(wanted))
+                {
+                    index++;
+                    found = true;
+                    break;
+                }
+
+                index++;
+            }
+
+            if (!found)
+                return false;
+        }
+
+        return true;
+    }
+
+    private static NavNode? FilterNode(NavNode node, string query)
+    {
+        var matchedChildren = new List<NavNode>();
+        foreach (var child in node.Children)
+        {
+            var copy = FilterNode(child, query);
+            if (copy is not null)
+                matchedChildren.Add(copy);
+        }
+
+        var self = Matches(node, query);
+        if (!self && matchedChildren.Count == 0)
+            return null;
+
+        var view = node.AsView();
+        if (self && matchedChildren.Count == 0)
+        {
+            foreach (var child in node.Children)
+                view.Children.Add(child.CloneBranch());
+        }
+        else
+        {
+            foreach (var child in matchedChildren)
+                view.Children.Add(child);
+            view.Expanded = true;
+        }
+
+        return view;
+    }
+
+    private static bool Matches(NavNode node, string query)
+    {
+        if (Subsequence(node.Title, query) || Subsequence(node.MethodName, query))
+            return true;
+        var note = FlowNotes.Find(node.SyntaxPath, node.MethodName ?? node.Title);
+        return note is not null && (Subsequence(note.Title, query) || Subsequence(note.Purpose, query));
+    }
+
     public static void Expand(NavNode node, Catalog catalog, string sourceRoot)
     {
-        if (!node.CanExpandCalls || node.Symbol is null)
+        var target = node.Origin ?? node;
+        if (!target.CanExpandCalls || target.Symbol is null)
             return;
-        node.Children.Clear();
-        var layer = CallLayerGraph.Expand(node.Symbol, sourceRoot, catalog);
+        target.Children.Clear();
+        var layer = CallLayerGraph.Expand(target.Symbol, sourceRoot, catalog);
         var work = layer.Calls.Where(call => call.Kind != CallKind.System).ToList();
         foreach (var phase in Enum.GetValues<PatternAPhase>())
         {
@@ -131,7 +232,7 @@ public static class MenuNavTree
             var bucket = new NavNode(PatternA.Title(phase, layer.Menu), NavNode.Phase, mainFlow: main);
             foreach (var call in calls)
                 bucket.Children.Add(FunctionChild(catalog, call, main));
-            node.Children.Add(bucket);
+            target.Children.Add(bucket);
         }
 
         var systems = layer.Calls.Where(call => call.Kind == CallKind.System).ToList();
@@ -140,9 +241,15 @@ public static class MenuNavTree
             var systemNode = new NavNode("系统", NavNode.Phase, mark: "不展开");
             foreach (var call in systems)
                 systemNode.Children.Add(FunctionChild(catalog, call, main: false));
-            node.Children.Add(systemNode);
+            target.Children.Add(systemNode);
         }
 
+        target.MarkLoaded();
+        if (ReferenceEquals(node, target))
+            return;
+        node.Children.Clear();
+        foreach (var child in target.Children)
+            node.Children.Add(child.CloneBranch());
         node.MarkLoaded();
     }
 

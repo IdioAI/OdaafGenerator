@@ -1,0 +1,64 @@
+<Window x:Class="OdaafGenerator.App.LayerSummaryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:OdaafGenerator.Core;assembly=OdaafGenerator.Core"
+        Title="本层摘要"
+        Height="760" Width="520"
+        MinHeight="480" MinWidth="360"
+        WindowStartupLocation="CenterScreen">
+  <DockPanel Margin="12">
+    <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+      <TextBlock Text="{Binding ProposalStatus}" TextWrapping="Wrap" Foreground="#667085" Margin="0,0,0,6"/>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="提议中文名" Padding="10,4" Margin="0,0,8,0" Click="Propose_Click"/>
+        <Button Content="接受勾选" Padding="10,4" Margin="0,0,8,0" Click="Accept_Click"/>
+        <Button Content="导出 Markdown" Padding="10,4" Click="Export_Click"/>
+      </StackPanel>
+    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel>
+        <TextBlock FontWeight="SemiBold" FontSize="16" Text="{Binding CurrentBrief.MenuTitle}"/>
+        <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Foreground="#1D4E89" Text="上下文"/>
+        <TextBlock Text="{Binding CurrentBrief.ContextText}" TextWrapping="Wrap"/>
+        <TextBlock Margin="0,10,0,0" FontWeight="SemiBold" Foreground="#1D4E89" Text="全局，本机"/>
+        <TextBlock Text="{Binding CurrentBrief.MachineInput}" TextWrapping="Wrap"/>
+        <TextBlock Margin="0,10,0,0" FontWeight="SemiBold" Foreground="#1D4E89" Text="上下文，这一对板"/>
+        <TextBlock Text="{Binding CurrentBrief.BoardInput}" TextWrapping="Wrap"/>
+        <TextBlock Margin="0,10,0,0" FontWeight="SemiBold" Foreground="#1D4E89" Text="这一次勾选"/>
+        <TextBlock Text="{Binding CurrentBrief.ChoiceInput}" TextWrapping="Wrap"/>
+        <TextBlock Margin="0,10,0,0" FontWeight="SemiBold" Foreground="#1D4E89" Text="DNA"/>
+        <TextBlock Text="{Binding CurrentBrief.DnaText}" TextWrapping="Wrap"/>
+        <TextBlock Margin="0,10,0,4" FontWeight="SemiBold" Foreground="#1D4E89" Text="执行"/>
+        <ListBox ItemsSource="{Binding CurrentBrief.Execute}" BorderThickness="0"
+                 MouseDoubleClick="Row_DoubleClick">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="{x:Type core:ExecuteRow}">
+              <TextBlock Margin="0,2" TextWrapping="Wrap">
+                <Run Text="{Binding FriendlyName, Mode=OneWay}" FontWeight="SemiBold"/>
+                <Run Text="  "/>
+                <Run Text="{Binding MethodName, Mode=OneWay}" Foreground="#667085"/>
+                <Run Text="  "/>
+                <Run Text="{Binding Purpose, Mode=OneWay}"/>
+              </TextBlock>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Margin="0,12,0,4" FontWeight="SemiBold" Text="Markdown"/>
+        <TextBox Text="{Binding BriefMarkdown, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
+                 AcceptsReturn="True" MinHeight="160" VerticalScrollBarVisibility="Auto"/>
+        <TextBlock Margin="0,12,0,4" FontWeight="SemiBold" Text="待接受的中文名"/>
+        <ItemsControl ItemsSource="{Binding Proposals}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type core:NameProposal}">
+              <StackPanel Margin="0,4,0,8">
+                <CheckBox Content="{Binding MethodName}" IsChecked="{Binding Accept}"/>
+                <TextBox Margin="18,2,0,0" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Margin="18,2,0,0" Text="{Binding Purpose, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap"/>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

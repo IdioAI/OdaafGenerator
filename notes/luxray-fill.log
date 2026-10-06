@@ -1,0 +1,714 @@
+15:10:52 待填 217，同名冲突跳过 0。
+15:11:18 待填 217，同名冲突跳过 0。
+15:11:29 批次 1 ExecuteImportCnc 2 个：ok 2
+15:11:29 ExecuteImportCnc	导入单个CNC文件	从文件对话框选择并导入单个CNC数据文件	importType=固定为SingleFile
+ExecuteImportBackdrillAndThroughHole	导入背钻与通孔一钻	导入包含背钻及通孔一钻信息的专用CNC文件	importType=SingleFile;includeThroughHoleFirstDrill=true
+ImportCncFromDirectory	从目录加载CNC数据	直接从指定CNC输出目录导入数据，用于背钻导出后快速加载	cncDirectory=CNC数据所在目录路径
+CallProjectImportService	执行项目级CNC导入	根据类型弹窗选择文件或目录，并调用底层服务完成导入	importType=导入类型（单文件/目录）;includeThroughHoleFirstDrill=是否包含通孔一钻
+15:11:34 批次 2 ExecuteImportBackdrillAndThroughHole 1 个：ok 1
+15:11:34 ExecuteImportBackdrillAndThroughHole	导入背钻通钻	从项目服务导入背钻及通孔钻数据	无
+ImportCncFromDirectory	从目录加载CNC	从指定CNC目录导入数据	cncDirectory=CNC数据所在路径
+ExecuteOpenProjectIndex	打开CNC工程索引	以CNC工作区模式打开工程索引文件	无
+15:11:45 批次 3 ExecuteImportXmlData 6 个：ok 6
+15:11:45 ExecuteImportXmlData	导入XML数据	filePath=XML文件路径；progressWindow=进度窗口句柄（out）	
+CreateXmlImportProgressWindow	创建导入进度窗	title=窗口标题；statusText=状态文本块（out）；progressBar=进度条控件（out）；detailText=详情文本块（out）	
+EnsureCncWorkspaceContextAndViewForXmlImport	准备CNC工作上下文	无参数	
+RaiseImportStatus	更新导入状态栏	status=状态描述字符串（null表示复位）	
+Close	关闭窗口	无参数	
+Hide	隐藏窗口	无参数	
+EnsureAndActivateXmlToPcbGenForExport	准备并激活PCB生成上下文	xmlFilePath=XML文件路径；preParsedResult=预解析结果；返回值=激活的上下文对象
+15:11:54 批次 4 ExecuteImportXmlData 2 个：ok 2
+15:11:54 ExecuteImportXmlData	导入XML数据	将XML文件导入为项目数据	xmlFilePath=XML文件路径;preParsed=预解析结果;preferredProjectIndexPath=首选工程索引路径
+EnsureXmlCadGraphForActiveXmlToPcbGen	激活XML-CAD视图	确保当前XML转PCB上下文打开并聚焦XML CAD视图	
+FinalizeXmlToPcbGenExport	完成导出收尾	清理导出后状态，保留XML主身份与CAD视图	options=导出选项;outputPcbPath=输出PCB路径
+TryResolveAndImportProjectIndexForXml	解析并导入工程索引	尝试根据XML自动定位并加载关联的工程索引文件	xmlFilePath=XML文件路径;preParsed=预解析结果;preferredProjectIndexPath=首选工程索引路径
+15:12:00 批次 5 ExecuteShowLastXmlImportInfo 1 个：ok 1
+15:12:00 ExecuteShowLastXmlImportInfo	显示上次XML导入信息	显示缓存中最后一次XML导入的文件路径和摘要信息；	（无参数）
+15:12:43 批次 6 ExecuteImportSmtXmlData 6 个：ok 6
+15:12:43 ExecuteImportSmtXmlData	导入SMT XML数据	选择并导入OMRON VT系列SMT XML文件	path=XML文件路径（通过对话框获取）
+EnsureNewCncWorkspaceContextForSingleFileImport	新建CNC工作区上下文	为单文件导入创建独立CncWorkspace上下文并激活	selectedPath=导入文件路径;importCategory=导入分类标签
+GetActiveCncWorkspaceContext	获取当前CNC工作区上下文	返回当前激活的CncWorkspace类型上下文	
+RequireActiveCncWorkspace	检查需CNC工作区上下文	若无激活CncWorkspace则提示并返回false	context=输出当前CncWorkspace上下文
+Clear	清空当前数据对象	重置所有PCB相关数据集合与参数	
+ImportXmlData	导入XML解析结果数据	将XML解析结果写入当前上下文	result=XML解析结果;clearExistingData=是否清除已有数据
+NewGuid	生成新唯一标识符	返回一个新的全局唯一GUID字符串	
+SwitchToDefaultContext	切换至默认CNC工作区	激活默认CncWorkspace上下文（无路径参数）	
+SwitchToNewSpecViewForCncWorkspace	自动跳转新料号视图	CncWorkspace加载完成后自动切换到NewSpecCreatorView	
+GetFusionContextForActive	获取当前融合上下文	返回当前激活文档对应的PcbFusionContext	
+GetFusionContextForSemiAuto	获取半自动融合上下文	优先查当前，否则查任意已完成分组的SemiAuto融合上下文	
+SetPrimaryCncSourceDirectoryForExport	设置CNC导出来源路径	记录导出XML时使用的原始CNC目录	cncFileOrFolderPath=CNC文件或目录路径
+ImportPcbData	导入PCB数据文件	加载指定路径的PCB数据（无返回值）	filePath=PCB文件路径
+ImportPcbDataWithResult	导入PCB并返回结果	加载PCB数据，支持进度回调并返回解析结果	filePath=PCB文件路径;progressCallback=进度回调(current,total)
+ApplyScaleCompensation	应用胀缩补偿计算	基于当前参数执行胀缩补偿处理	
+SetScaleParameters	设置胀缩补偿参数	配置数据与基准点的胀缩参数	dataScale=数据胀缩参数;fiducialScale=基准点胀缩参数
+ApplyTranslationCompensation	应用平移补偿计算	基于当前参数执行平移补偿处理	
+SetTranslationParameters	设置平移补偿参数	配置数据与基准点的平移参数	dataTranslation=数据平移参数;fiducialTranslation=基准点平移参数
+CalculateTranslationParameters	计算平移补偿参数	根据Fiducial等特征自动推算平移参数	
+GetAllSpecs	获取所有规格项	返回当前上下文全部SpecDefForComp对象	
+GetAllLands	获取所有焊盘数据	返回当前上下文全部Land对象	
+GetAllPlacements	获取所有器件位置	返回当前上下文全部ComponentPlacement对象（含Fiducial）	
+GetAllComp	获取所有普通器件	返回当前上下文非Fiducial的ComponentPlacement对象	
+GetAllFiducials	获取所有基准标记	返回当前上下文全部FiducialMark对象	
+GetTool	按ID获取刀具信息	从工具列表中查找指定ID的DrillTool	oldToolId=刀具ID
+TryRenameDrillTool	尝试重命名刀具	校验并更新刀具名称，失败则输出错误信息	oldToolId=旧刀具ID;newToolId=新刀具ID;errorMessage=错误原因（输出）
+AddSpec	添加规格项	向当前上下文新增一个SpecDefForComp	spec=待添加规格
+RemoveSpec	移除规格项	从当前上下文删除指定规格	spec=待删除规格
+AddPlacement	添加器件位置	向当前上下文新增一个ComponentPlacement	placement=待添加器件
+RemovePlacement	移除器件位置	从当前上下文删除指定器件	placement=待删除器件
+AddLand	添加焊盘数据	向当前上下文新增一个Land	land=待添加焊盘
+RemoveLand	移除焊盘数据	从当前上下文删除指定焊盘	land=待删除焊盘
+AddFiducial	添加基准标记	向当前上下文新增一个FiducialMark	mark=待添加基准点
+RemoveFiducial	移除基准标记	从当前上下文删除指定基准点	mark=待删除基准点
+ConvertProductionDatasetToProdatDoc	转换生产数据集为文档	将ProductionDataset转存至ProdatDoc结构	productionDataset=生产数据集对象
+AddZExtractionWindow	添加Z抽出窗口实例	注册一个新的ZExtractionWindow到管理列表	window=新窗口实例
+RemoveZExtractionWindow	移除Z抽出窗口实例	从管理列表中注销指定窗口	window=待移除窗口实例
+ClearZExtractionWindows	清空所有Z抽出窗口	释放并移除全部已注册的ZExtractionWindow	
+GetZExtractionWindowsByToolId	按刀具ID获取Z抽出窗口	返回匹配指定刀具ID的所有Z抽出窗口列表	toolId=刀具ID
+EnsureCncWorkspaceContextBeforeImport	复用型CNC上下文准备	为批量/目录导入创建或复用CncWorkspace上下文	selectedPath=CNC导入路径（文件或目录）
+15:12:59 批次 7 ExecuteImportSmtXmlData 6 个：ok 6
+15:12:59 ExecuteImportSmtXmlData	导入SMT XML数据	执行SMT XML数据导入流程	filePath=XML文件路径
+OnXmlImportSuccess	处理导入成功后操作	记录导入结果并更新界面状态	filePath=已导入的XML文件路径
+UpdatePCBBorderLayerFromLogicLayer	同步PCB边框尺寸	从逻辑层获取PCB尺寸并更新图形引擎参数	logicLayer=逻辑层对象（可选）
+TriggerDataProcessingCompleted	触发处理完成事件	通知监听者数据处理已完成	
+Clear	全面清理数据	清除所有核心数据并重置状态	reason=清理原因
+ClearSelectionData	清除选择状态	取消所有器件的选中状态	
+GenerateDetailedErrorMessage	生成详细错误信息	汇总错误与警告为可读文本字符串	
+GetCurrentContextAwareContextType	获取上下文类型	返回当前感知型文档上下文类型	
+GetDocumentByContext	按上下文获取文档	根据上下文类型和文件路径定位文档对象	contextType=文档上下文类型;pcbFilePath=PCB文件路径
+ActivateDocument	激活指定文档	选中并聚焦目标文档	documentId=文档ID
+CloseDocument	关闭指定文档	移除并清理目标文档资源	documentId=文档ID
+15:13:06 批次 8 ExecuteImportSmtXmlData 1 个：ok 1
+15:13:06 ExecuteImportSmtXmlData	导入SMT XML数据	导入SMT XML格式的物料数据	fileName=文件路径
+SwitchToNewSpecViewForCncWorkspace	自动切换至新料号视图	CNC工作区加载完成后自动跳转新料号生成界面	
+UpdateContextViews	刷新上下文视图列表	根据上下文类型更新当前视图面板与树形菜单	contextType=目标上下文类型
+15:13:29 批次 9 ExecuteAddSemiZExtractionToCurrentPcb 6 个：ok 6
+15:13:29 ExecuteAddSemiZExtractionToCurrentPcb	执行半自动Z抽出	为当前PCB添加Z抽出参数；需先加载PCB与XML配对并完成刀具分组；操作序号递增；归档前置资产	;  
+Add	添加孔索引项	将带位置的IndexedHole按网格单元存入缓存，用于快速邻近查找	item=待添加的钻孔索引项  
+FindNearest	查找最近匹配孔	在给定容差内搜索邻近区域中距离最近的孔	hole=目标孔;tol2=最大允许距离平方  
+TryGetSemiAutoXmlPath	获取半自动XML路径	根据文档名查询已缓存的XML文件路径	documentName=文档名称  
+GetSearchRangeOffsetFromSystemConfig	读取系统搜索偏移值	从配置中读取Z抽出搜索范围偏移量（μm），失败则返回null供默认值使用	;  
+GetOriginalDepth	获取原始钻孔深度	优先返回OriginDepth，无效时降级为当前Depth	;  
+InitializeFromTool	从刀具初始化参数	用刀具数据初始化Z抽出相关参数；确保PcbVersion有效并回填缺失的搜索范围	;
+15:13:53 批次 10 ExecuteAddSemiZExtractionToCurrentPcb 6 个：ok 7
+15:13:53 ExecuteAddSemiZExtractionToCurrentPcb	半自动加Z抽	半自动流程：加载PCB与XML对齐，写入Z抽出等参数至当前PCB；不处理背钻和系统DNA	pcbVersion=PCB版本号;isZeroRange=是否清零搜索范围
+ApplySearchDirectionFromDrillDirection	同步搜索方向	根据钻孔方向设置Z抽出搜索方向；无参则更新默认参数	zItem=可选Z抽出项
+EnsureZExtractSearchDirection	确保Z抽方向一致	保证Z抽出搜索方向与钻孔方向匹配；必要时初始化参数	pcbVersion=PCB版本（可选）
+HasZExtractParameters	已存在Z抽参数	检查是否已有Z抽出参数对象（不创建）	
+ZeroZExtractSearchRanges	清零Z抽搜索范围	将Z抽出搜索上下限设为0；无对象则返回false	
+CalculateSearchRangeForTool	计算Z抽搜索范围	根据刀具深度与偏移量计算上下搜索边界(toolDepth,searchRangeOffset)	
+ApplyZeroZExtractSearchRangesIfEnabled	按需清零Z抽范围	若启用“填零”，批量清零指定刀具的搜索范围(tools,pcbVersion)	
+CreateOrGetZExtractCriterionItemAccordingToolIDFromGroup1747	取或建Z抽算法项	从标准组1747中查找/创建对应刀具的Z抽出算法项(toolId,toolDepth,itemManager,dataManager,groupManager,parseResult,toolParameters)	
+ClearZExtractionInFusionDoc	清除融合文档Z抽数据	在半自动上下文中清除fusionDoc的Z抽出数据	fusionDoc=融合文档
+ClearAllData	清空文档全部数据	批量清空Specs/Lands/Placements等集合并重置状态	
+GetFolderPath	获取文件夹路径	返回当前操作相关文件夹路径（如XML/CNC目录）	
+GetLastPcbFileDirectory	获取最后PCB目录	返回最近使用的PCB文件所在目录路径	
+ClearZExtractionInFusionDoc	清除融合文档Z抽数据	在半自动上下文中清除fusionDoc的Z抽出数据	fusionDoc=融合文档
+15:14:08 批次 11 ExecuteAddSemiZExtractionToCurrentPcb 5 个：ok 5
+15:14:08 ExecuteAddSemiZExtractionToCurrentPcb	添加半自动Z抽出	加载PCB与XML配对后写入Z抽出参数；半自动为单板单文档模式；不处理背钻和ISU	pcbDoc=当前PCB文档;xmlPath=XML文件路径
+ExecuteAddZExtraction36820Async	异步添加Z抽出算法	异步执行Z抽出标准项创建与写入操作，含验证、匹配与持久化	toolId=刀具ID;depth=钻深;manager=管理器实例;result=解析结果
+ShowAutoAddZExtractionDetails	显示自动添加详情	弹窗展示Z抽出自动添加的配置明细与执行日志	
+ToDictionary	转为字典结构	将当前对象或集合转换为键值对字典形式	
+CreateOrGetZExtractCriterionItemAccordingToolIDFromGroup1747	按刀具ID获取Z抽出项	根据刀具ID在TAG=1747组中查找或新建Z抽出标准项；含状态验证与修复逻辑	toolId=刀具标识;toolDepth=钻深;itemMgr=项管理器;dataMgr=数据管理器;groupMgr=组管理器;parseResult=解析结果;toolParams=工具参数
+Take	截取指定数量元素	从序列开头起始，返回指定数量的连续元素	count=截取数量
+15:14:19 批次 12 ExecuteAddBackdrillParametersToCurrentPcb 5 个：ok 4
+15:14:19 ExecuteAddBackdrillParametersToCurrentPcb	添加背钻参数	为当前PCB文档写入背钻、Z抽出等参数	;  
+GetContext	获取上下文	根据文档名与类型返回对应PCB处理上下文	;  
+GetExisting8161Or8164FromPcb	提取现有816x参数	从PCB中读取已存在的8161或8164参数项	;  
+EnsureCustomPacksClonedFromStub	克隆自定义参数包	确保自定义刀具的参数包基于Stub正确初始化	;
+15:14:25 批次 13 ExecuteSemiAutoAddGroupingInfo 3 个：ok 2
+15:14:25 ExecuteSemiAutoAddGroupingInfo	半自动分组补录	为半自动PCB文档添加分组信息（不导入XML）；需先加载配对再执行	  
+GetType	获取节点快照状态列表	返回当前工作流节点的只读状态快照列表	  
+SnapshotNodes	获取节点与焊盘快照	返回节点状态快照及焊盘ID列表；线程安全锁保护	SemiAutoWorkflowNodeState=节点状态; string=焊盘ID
+15:14:33 批次 14 ExecuteExportXmlData 2 个：ok 1
+15:14:33 ExecuteExportXmlData	导出XML数据	将当前文档的XML数据导出到用户指定路径；无参数	  
+ExecuteExportXmlToAssetDirectory	导出至资产目录	将XML数据导出至项目资源目录下对应子文件夹；无参数	  
+ExecuteExportXmlOnlyCustomComponents	仅导出自定义元件	强制仅导出人工创建的元件（忽略系统默认项）；无参数
+15:14:40 批次 15 ExecuteExportXmlToAssetDirectory 2 个：ok 1
+15:14:40 ExecuteExportXmlToAssetDirectory	导出XML到资产目录	将当前逻辑层的XML数据导出至项目资产目录	logicLayer=当前逻辑层
+ExecuteExportXmlOnlyCustomComponents	仅导出人工元件	强制仅导出人工元件（绕过系统参数）	logicLayer=当前逻辑层
+ExecuteAdvancedExportXml	高级XML导出配置	弹窗设定导出选项：仅人工元件、含工程信息	logicLayer=当前逻辑层
+15:14:45 批次 16 ExecuteExportXmlOnlyCustomComponents 1 个：ok 1
+15:14:45 ExecuteExportXmlOnlyCustomComponents	仅导出人工元件	强制过滤并导出XML中的人工元件数据；无参数	
+ExecuteAdvancedExportXml	高级XML导出	弹出对话框配置高级导出选项（含工程信息等）；无参数	
+OnPcbLegalityCheckCompletedOpenResult	打开检查结果视图	检查完成后自动打开PCB合规性分析结果视图；args=PcbLegalityCheckCompletedEventArgs
+15:14:51 批次 17 ExecuteAdvancedExportXml 1 个：ok 1
+15:14:51 ExecuteAdvancedExportXml	高级导出XML	执行带高级选项的XML数据导出操作；	userInteractionService=用户交互服务;logicLayer=逻辑层数据
+OnPcbLegalityCheckCompletedOpenResult	自动打开检查结果视图	合法性检查完成后自动激活结果视图（排除导入场景）	args=事件参数
+OnPcbLegalityNavigationRequested	处理合法性导航请求	响应用户跳转到分析树或2D图形的导航请求	request=导航请求对象
+15:15:04 批次 18 ExecuteAdvancedImport 5 个：ok 5
+15:15:04 ExecuteAdvancedImport	高级导入	CNC数据高级导入流程；含对话框配置与服务调用	;
+ExecuteGenerateOmr	生成OMR文件	基于当前逻辑层生成OMR输出文件	;
+GetDefaultImportOptions	获取默认导入选项	从用户交互服务读取上次保存的导入参数	;
+SetImportDialogOptions	设置对话框选项	将导入参数同步到UI控件状态	dialog=导入对话框实例;options=导入配置对象
+CallStandardImportService	标准模式导入	执行单文件/目录选择并调用解析服务	importDialog=导入参数对话框
+SaveUserImportChoices	保存用户导入偏好	持久化当前导入设置供下次使用	options=导入选项对象
+15:15:10 批次 19 ExecuteGenerateOmr 2 个：ok 1
+15:15:10 ExecuteGenerateOmr	生成OMR文件	调用交互服务生成OMR配置文件；若未指定目录则弹出保存对话框选择路径；成功后提示用户；失败或异常时显示错误信息	_logicLayer=逻辑层数据; directory=保存目录（可选）
+ExecuteShowConfigDialog	打开配置对话框	弹出配置参数设置对话框，仅在用户确认后生效	无
+15:15:14 批次 20 ExecuteShowConfigDialog 1 个：ok 1
+15:15:14 ExecuteShowConfigDialog	显示配置对话框	打开配置对话框并处理结果	;
+ExecuteShowSystemParameterConfig	系统参数设置	打开系统参数配置窗口并保存变更	;
+ExecuteExportConfig	保存默认配置	将当前配置保存为程序默认配置	;
+15:15:19 批次 21 ExecuteShowSystemParameterConfig 1 个：ok 1
+15:15:19 ExecuteShowSystemParameterConfig	显示系统参数配置	打开系统参数配置窗口	无
+ExecuteExportConfig	保存默认配置	将当前设置保存为程序默认配置	无
+UpdatePCBBorderLayerFromLogicLayer	更新PCB边框图层	根据逻辑层数据刷新PCB边框图形	logicLayer=逻辑层实例（可选）
+15:15:27 批次 22 ExecuteExportConfig 2 个：ok 2
+15:15:27 ExecuteExportConfig	导出默认配置	将当前配置保存为程序默认配置	  
+UpdatePCBBorderLayerFromLogicLayer	同步PCB边框信息	从逻辑层更新PCB尺寸与参考位置至图形管理器	logicLayer=逻辑层实例（可选）
+SaveConfiguration	保存主工程配置	保存当前主工程的完整配置到存储	  
+ExportConfiguration	导出配置文件	将配置导出至指定路径	exportPath=导出文件路径
+ImportConfiguration	导入配置文件	从指定路径加载并应用配置	importPath=配置文件路径
+ResetToDefault	重置为默认配置	恢复所有设置为程序出厂默认值	
+15:15:36 批次 23 ExecuteResetSystemConfig 2 个：ok 2
+15:15:36 ExecuteResetSystemConfig	重置系统配置	确认后删除并重建所有配置文件和默认设置	无
+ResetSystemConfigInternal	内部重置配置	实际执行配置文件删除、目录重建及管理器重置操作	无
+ExecuteApplyUnifiedNaming	统一命名处理	对当前工作区中的对象应用统一命名规则	无
+15:15:41 批次 24 ExecuteExit 2 个：ok 1
+15:15:41 ExecuteExit	退出并保存配置	程序退出前保存配置后关闭应用	无
+ExecuteAbout	显示关于窗口	弹出关于应用程序的对话框	无
+OnImportCncRequested	处理CNC导入请求	响应导入CNC文件事件并执行相应逻辑	sender=事件发送者;e=导入CNC事件参数
+15:15:53 批次 25 ExecuteOpenProjectIndex 6 个：ok 6
+15:15:53 ExecuteOpenProjectIndex	打开工程索引	选择并加载工程索引文件	entryPath=工程索引路径;knownProidxPath=已知索引路径;forceNewContext=强制新建上下文;askResume=询问恢复
+ApplyTo	应用目录设置	将当前目录设为对话框初始目录	
+ResolveSelectedIndexOrPrompt	确认或提示重建索引	处理已有.proidx时的重建确认逻辑	
+RememberFromIndexPath	记住索引目录	记录用户最近选择的索引所在目录	
+DecideForProjectIndex	决定加载策略	根据索引文件决定后续加载行为	
+TryEnterCncWorkspaceWithResume	进入CNC工作区并尝试恢复	基于路径和缓存状态进入CNC工作区	entryPath=入口路径;knownProidxPath=已知索引路径;forceNewContext=强制新建上下文;askResume=询问是否恢复缓存
+15:16:04 批次 26 ExecuteSetWorkspaceMainXml 5 个：ok 5
+15:16:04 ExecuteSetWorkspaceMainXml	设置主XML	设置当前工程的工作区主XML路径并保存至索引；无	
+ExecuteSwitchToZExtractStudio	切换Z工作台	切换到Z抽出工作台并打开对应工程索引；无	
+EnsureMainXmlReadyForZExtractSwitch	确认主XML就绪	检查主XML是否有未保存更改，必要时提示用户保存；project=工程数据集	
+ResolveAbsolute	解析主XML路径	根据工程信息解析主XML的绝对路径；project=工程对象	
+BuildDefaultFileName	生成默认文件名	基于工程名或prodat文件名生成主XML默认文件名；无	
+TrySetAndSave	设置并保存主XML	尝试设置新路径并写入工程索引，失败返回错误；project=工程对象；path=XML路径；error=错误信息（输出）	
+GetRecorded	获取记录的XML路径	从工程索引中读取当前记录的主XML路径；project=工程对象
+15:16:14 批次 27 ExecuteSwitchToZExtractStudio 2 个：ok 2
+15:16:14 ExecuteSwitchToZExtractStudio	切换至Z抽出工作台	验证并保存主XML后打开Z抽出工作台；若无工程索引则提示用户	proidx=工程索引文件路径（.proidx）
+OpenZExtractStudioWithMainXml	以主XML打开Z抽出工作台	基于工程索引定位主XML，跳过文件选择对话框直接启动Z抽出上下文	proidxPath=工程索引路径
+OpenZExtractStudioWithPaths	直接启动Z抽出工作台	传入proidx与继承XML路径，设置待处理参数并导航至视图	proidxPath=工程索引路径;inheritedXmlPath=继承的主XML路径
+TryRedirectImportToCncMode	重定向导入至CNC模式	判断是否需切换至CNC工作区；返回true表示用户取消操作	selectedPath=用户选择的文件路径
+15:16:18 批次 28 ExecuteSaveActiveCncWorkspace 2 个：ok 1
+15:16:18 ExecuteSaveActiveCncWorkspace	保存当前CNC工作区	保存当前激活的CNC工作区数据；含孔组缓存与PROIDX文件	无
+ExecuteSaveProjectIndex	同步并保存工程索引	更新内存中工程信息后执行项目保存操作	无
+UpdateProjectInformationSection	填充工程信息字段	根据当前项目数据更新ProjectInformation对象内容	project=待更新的生产数据集
+15:16:24 批次 29 ExecuteNavigateToPcbComparer 1 个：ok 1
+15:16:24 ExecuteNavigateToPcbComparer	打开PCB差异视图	启动独立的PCB差异比较窗口	PcbDocumentContextType=上下文类型
+ExecuteExit	退出并保存配置	退出程序前保存用户设置	无
+ExecuteAbout	显示关于信息	弹出程序关于对话框	无
+OnImportCncRequested	处理CNC导入请求	响应外部事件启动CNC文件导入流程	sender=事件源;e=导入请求参数
+15:16:34 批次 30 ExecuteNavigateToXmlImporter 1 个：ok 1
+15:16:34 ExecuteNavigateToXmlImporter	转到XML导入器	导航至XML导入视图	currentContextType=当前上下文类型
+ExecuteNavigateToCncConverter	转到CNC转换器	导航至CNC转换视图	currentContextType=当前上下文类型
+ExecuteNavigateToSpecEditor	转到规格编辑器	导航至规格编辑视图	currentContextType=当前上下文类型
+ExecuteNavigateToDeviceOverview	转到设备概览	导航至设备概览视图	currentContextType=当前上下文类型
+ExecuteNavigateToNewSpecCreator	新建规格向导	导航至新料号生成视图	currentContextType=目标上下文类型
+ExecuteCncAutoGroupAndGenerate	CNC自动分组引导	打开新规格视图并准备自动分组操作	
+ExecuteCncDiff	CNC数据集对比	打开数据集比较输入界面	context=PcbDocumentContextType.CncDiff
+ExecuteOpenDatasetCompareRules	查看对比规则	打开数据集比较规则配置界面	context=PcbDocumentContextType.DatasetCompareRules
+15:16:44 批次 31 ExecuteNavigateToCncConverter 1 个：ok 1
+15:16:44 ExecuteNavigateToCncConverter	转到CNC转换器	导航至CNC转换视图	currentContextType=当前上下文类型（默认CncWorkspace）
+ExecuteNavigateToSpecEditor	打开规格编辑器	导航至规格编辑视图	currentContextType=当前上下文类型（默认CncWorkspace）
+ExecuteNavigateToDeviceOverview	打开设备概览	导航至设备概览视图	currentContextType=当前上下文类型（默认CncWorkspace）
+ExecuteNavigateToNewSpecCreator	新建规格生成器	导航至新料号生成视图	currentContextType=目标上下文类型（优先当前非CncWorkspace，否则CncWorkspace）
+ExecuteCncAutoGroupAndGenerate	CNC自动分组生成	进入自动分组与元件生成流程	currentContextType=CncWorkspace
+ExecuteCncDiff	启动数据集比较	打开数据集比较输入界面	contextType=CncDiff
+ExecuteOpenDatasetCompareRules	打开比较规则管理	导航至通用数据集比较规则视图	contextType=DatasetCompareRules
+ExecuteOpenDocumentDatasetCompareRules	打开文档比较规则	导航至当前比较会话的规则视图	cncDiff=当前CncDiff上下文实例
+15:16:53 批次 32 ExecuteNavigateToSpecEditor 1 个：ok 1
+15:16:53 ExecuteNavigateToSpecEditor	转到规格编辑器	导航至规格编辑器视图	currentContextType=当前上下文类型
+ExecuteNavigateToDeviceOverview	转到设备概览	导航至设备概览视图	currentContextType=当前上下文类型
+ExecuteNavigateToNewSpecCreator	转到新建规格页	导航至新建规格创建视图	targetContextType=目标上下文类型
+ExecuteCncAutoGroupAndGenerate	启动自动分组生成	在CNC工作区打开新建规格页并准备自动分组	
+ExecuteCncDiff	打开数据集比较	导航至数据集比较输入视图	
+ExecuteOpenDatasetCompareRules	打开比较规则页	导航至通用数据集比较规则配置视图	
+ExecuteOpenDocumentDatasetCompareRules	打开文档比较规则	在当前比较会话中打开或创建规则视图	cncDiff=当前CNC比较上下文
+15:17:02 批次 33 ExecuteNavigateToDeviceOverview 1 个：ok 1
+15:17:02 ExecuteNavigateToDeviceOverview	导航至设备概览	在当前上下文中显示设备概览视图	currentContextType=目标上下文类型
+ExecuteNavigateToNewSpecCreator	新建规格向导	跳转至新规格创建界面	targetContextType=目标上下文类型
+ExecuteCncAutoGroupAndGenerate	CNC自动分组向导	打开新料号生成视图以进行自动分组操作	
+ExecuteCncDiff	数据集比较入口	启动数据集比较流程（文件准备阶段）	
+ExecuteOpenDatasetCompareRules	打开比较规则界面	显示全局数据集比较规则配置界面	
+ExecuteOpenDocumentDatasetCompareRules	打开文档比较规则	为当前比较会话加载并打开规则界面	cncDiff=当前CNC比较上下文
+ExecuteOpenInspectionDefect	导入检测缺陷文件	弹出对话框选择Omron检测程序XML	dXml=文件选择器实例
+15:17:10 批次 34 ExecuteNavigateToNewSpecCreator 1 个：ok 1
+15:17:10 ExecuteNavigateToNewSpecCreator	新建料号向导	打开新料号生成视图，用于创建或编辑元件分组规则	targetContextType=目标上下文类型（优先当前非CNC工作区上下文）
+ExecuteCncAutoGroupAndGenerate	自动分组向导	进入CNC自动分组与生成元件流程的起始界面	
+ExecuteCncDiff	数据集比较入口	打开数据集比较输入界面，用于准备①文件对比任务	
+ExecuteOpenDatasetCompareRules	打开比较规则	显示通用数据集比较规则配置界面	
+ExecuteOpenDocumentDatasetCompareRules	文档专属规则	为当前CNC比较会话打开或创建专属规则配置界面	
+ExecuteOpenInspectionDefect	导入检测缺陷	选择Omron XML与RVS CSV文件，加载并跳转至缺陷分析视图	dXml=Omron检测XML路径;dCsv=RVS检测结果CSV路径
+15:17:16 批次 35 ExecuteNavigateToSolderMaskDrawer 2 个：ok 2
+15:17:16 ExecuteNavigateToSolderMaskDrawer	跳转焊盘掩膜抽屉	导航至焊盘掩膜视图	
+ExecuteNavigateToPcbAnalyzer	跳转PCB分析器	导航至PCB分析视图（根据上下文智能选择类型）	
+ExecuteNavigateToPcbComparer	启动PCB比较	新建独立PCB差异对比窗口	
+ExecuteExit	退出程序并保存配置	保存配置后关闭应用程序	
+ExecuteAbout	显示关于对话框	弹出程序关于信息窗口	
+RequestNavigate	请求视图导航	（无源码，不补充参数）
+15:17:28 批次 36 ExecuteSingleFileImportCnc 2 个：ok 2
+15:17:28 ExecuteSingleFileImportCnc	单文件导入新工作区	在新CNC工作区中导入单个CNC文件，清除已有数据并强制新建上下文	
+ExecuteSingleFileAppendCnc	附加CNC文件至当前工作区	向当前活动CNC工作区追加导入指定CNC文件，保留现有数据	
+ExecuteImportCncWithOptions	统一执行CNC导入操作	根据传入选项参数调用标准或项目模式的CNC导入流程	
+ShowCncFilePicker	选择CNC文件对话框	弹出文件选择对话框并返回用户选定的CNC文件路径	
+RequireActiveCncWorkspace	检查当前是否为CNC工作区	验证当前上下文是否为有效CNC工作区，失败则提示并返回false	
+OnCncImportSuccess	CNC导入成功后处理	触发视图刷新与界面切换等后续操作以反映新导入数据	
+NotifyCurrentViewToRefresh	通知当前视图刷新	向当前显示的视图发送刷新指令以更新UI内容	
+SwitchToNewSpecViewForCncWorkspace	切换至新规格视图	在CNC工作区中打开并显示新生成的规格视图页面	
+CallProjectImportServiceWithOptions	调用项目模式导入服务	执行带选项的项目级CNC导入（含恢复对话框逻辑）	
+CallStandardImportServiceWithOptions	调用标准模式导入服务	执行带选项的标准级CNC导入流程
+15:17:47 批次 37 ExecuteSingleFileAppendCnc 6 个：ok 6
+15:17:47 ExecuteSingleFileAppendCnc	附加CNC文件	将用户选择的CNC文件追加到当前工作区中；若已加载则报错	filePath=待附加的CNC文件路径（内部获取）
+RequireActiveCncWorkspace	检查CNC工作区	验证是否存在激活的CNC工作区上下文，否则提示切换	无
+ShowCncFilePicker	选择CNC文件	弹出文件选择对话框，返回用户选定的CNC文件路径；记录最后访问目录	title=对话框标题
+ImportCncFile	导入CNC文件	调用项目服务导入指定CNC文件至逻辑层	无（参数未提供）
+OnCncImportSuccess	CNC导入后处理	标记数据已加载、更新UI标题与状态信息	filePath=成功导入的文件路径
+NotifyCurrentViewToRefresh	刷新当前视图	通知当前活跃视图（如NewSpecCreatorView）重新加载并刷新显示数据	无
+15:17:55 批次 38 ExecuteSingleFileImportXml 2 个：ok 2
+15:17:55 ExecuteSingleFileImportXml	覆盖导入XML	覆盖现有数据，从单个XML文件导入并创建新上下文	filePath=XML文件路径（通过对话框选择）  
+TryShowXmlImportPreview	预览XML导入内容	解析XML并显示导入摘要供用户确认是否继续导入	filePath=待预览的XML文件路径;clearExistingData=是否清空现有数据（影响窗口模式）
+15:18:04 批次 39 ExecuteSingleFileAppendXml 2 个：ok 2
+15:18:04 ExecuteSingleFileAppendXml	附加XML文件	将选中的XML文件内容追加到当前工作区中；不覆盖已有数据	filePath=待导入的XML路径;clearExistingData=是否清空现有数据;appendOptions=附加选项
+ExecuteImportXmlFromDialog	导入XML对话框	打开文件选择对话框并执行XML导入或附加操作	clearExistingData=是否清空现有数据;appendOptions=附加配置参数
+ShowToolMergeReportIfAny	显示刀具复用报告	在存在刀具SID冲突时弹出提示，说明复用情况	result=导入结果对象;fileName=源文件名
+15:18:10 批次 40 ExecuteSingleFileAppendXmlAdvanced 1 个：ok 1
+15:18:10 ExecuteSingleFileAppendXmlAdvanced	高级附加XML	高级选项下向当前工作区追加单个XML文件内容；SkipComponentsWithDuplicateName=跳过同名组件;ToolConflictStrategy=刀具冲突处理策略;FuzzyMatchToleranceMm=模糊匹配公差(毫米);RequireSameToolName=要求刀具名称一致
+15:18:17 批次 41 ExecuteCheckPcbXmlHomologous 1 个：502 <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.18.0 (Ubuntu)</center>
+</body>
+</html>
+
+15:18:17 <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.18.0 (Ubuntu)</center>
+</body>
+</html>
+
+15:18:18 批次 42 ExecuteOpenInspectionDefect 2 个：502 <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.18.0 (Ubuntu)</center>
+</body>
+</html>
+
+15:18:18 <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.18.0 (Ubuntu)</center>
+</body>
+</html>
+
+15:18:29 批次 43 ExecuteOpenProjectManagement 1 个：ok 1
+15:18:29 ExecuteOpenProjectManagement	打开项目管理	导航至项目管理视图	
+ExecuteOpenPcbLegalityRules	打开PCB合规规则	导航至PCB合规性规则视图	
+ExecuteOpenDocumentPcbLegalityRules	打开文档合规规则	在PCB分析器上下文中打开本文档合规规则；analyzerContext=当前分析器上下文
+ExecuteOpenZExtractAlgorithmRules	打开Z提取算法规则	导航至Z提取算法规则视图	
+ExecuteOpenAoiDefectMatchRules	打开AOI缺陷匹配规则	导航至AOI缺陷匹配规则视图	
+ExecuteOpenProjectIndexRules	打开工程索引规则	导航至工程索引规则视图	
+ExecuteOpenRvsColumnMapping	RVS列映射编辑	弹出RVS列映射窗口；win=新创建的映射窗口实例
+ExecuteOpenPanelLayout	打开拼板布局编辑	导航至拼板布局编辑器视图	
+ExecuteOpenAoiDefectMatch	打开AOI缺陷匹配输入	导航至AOI缺陷匹配输入视图	
+ExecuteOpenPanelCncPcbCompare	打开拼板与CNC比对	导航至拼板与CNC PCB比对视图	
+ExecuteOpenZExtractStudio	启动Z提取工作室	提示并加载工程索引路径；indexPath=用户选择的索引文件路径
+15:18:35 批次 44 ExecuteOpenPanelLayout 1 个：ok 1
+15:18:35 ExecuteOpenPanelLayout	打开面板布局编辑器	导航至面板布局编辑视图	无参数
+ExecuteOpenAoiDefectMatch	启动AOI缺陷匹配	AOI缺陷匹配输入界面	无参数
+ExecuteOpenPanelCncPcbCompare	启动面板与CNC比对	PCB面板与CNC文件比对界面	无参数
+ExecuteOpenZExtractStudio	打开Z提取工作室	引导式工程准备并进入ZExtractStudio视图	无参数
+ExecuteSetWorkspaceMainXml	设置工作区主XML	指定或确认当前工程的主XML路径	无参数
+15:18:42 批次 45 ExecuteOpenAoiDefectMatch 1 个：ok 1
+15:18:42 ExecuteOpenAoiDefectMatch	打开AOI缺陷匹配视图	打开AOI缺陷匹配视图	NavigateToView=目标视图名;ContextType=上下文类型
+ExecuteOpenPanelCncPcbCompare	打开面板与CNC比对视图	打开面板与CNC PCB比对视图	NavigateToView=目标视图名;ContextType=上下文类型
+ExecuteOpenZExtractStudio	启动ZExtractStudio工程	启动ZExtractStudio并加载工程索引(indexPath=工程索引路径)
+ExecuteSetWorkspaceMainXml	设置工作区主XML路径	设置当前工程的工作区主XML文件路径(project=当前工程)
+15:18:48 批次 46 ExecuteOpenPanelCncPcbCompare 1 个：ok 1
+15:18:48 ExecuteOpenPanelCncPcbCompare	打开面板CNC与PCB比对	打开面板级CNC与PCB比对视图；无参数	
+ExecuteOpenZExtractStudio	启动Z提取工作室	打开ZExtractStudio工作区，加载工程索引并可继承当前XML上下文；无参数	
+ExecuteSetWorkspaceMainXml	设置工作区主XML	为当前工程指定或修改主XML文件路径；project=当前工程对象（隐含）	
+ExecuteSwitchToZExtractStudio	切换至Z提取工作室	从当前视图跳转到ZExtractStudio，确保工程索引存在并有效；无参数
+15:18:58 批次 47 ExecuteOpenAoiDefectMatchRules 1 个：ok 1
+15:18:58 ExecuteOpenAoiDefectMatchRules	打开AOI缺陷匹配规则	 NavigateToView("AoiDefectMatchRulesView", PcbDocumentContextType.AoiDefectMatchRules);	
+ExecuteOpenProjectIndexRules	打开工程索引规则	 NavigateToView("ProjectIndexRulesView", PcbDocumentContextType.ProjectIndexRules);	
+ExecuteOpenRvsColumnMapping	RVS列映射窗口	 var win = new BHEditor.Modules.AoiDefectMatch.Views.RvsColumnMappingWindow { Owner = Application.Current?.MainWindow }; win.ShowDialog();	
+ExecuteOpenPanelLayout	打开面板布局编辑器	 NavigateToView("PanelLayoutEditorView", PcbDocumentContextType.PanelLayout);	
+ExecuteOpenAoiDefectMatch	打开AOI缺陷匹配输入界面	 NavigateToView("AoiInputView", PcbDocumentContextType.AoiDefectMatch);	
+ExecuteOpenPanelCncPcbCompare	打开面板CNC与PCB比对界面	 NavigateToView("AoiInputView", PcbDocumentContextType.PanelCncPcbCompare);	
+ExecuteOpenZExtractStudio	启动ZExtractStudio工作区	 var indexPath = PromptZExtractStudioProjectIndex(); if (string.IsNullOrWhiteSpace(indexPath)) return; ... NavigateToView("ZExtractStudioView", PcbDocumentContextType.ZExtractStudio);	
+ExecuteSetWorkspaceMainXml	设置工作区主XML文件	 var project = ProjectManagementService.Instance?.CurrentProject; if (project == null) { MessageBox.Show(...); return; } ...
+15:19:06 批次 48 ExecuteOpenRvsColumnMapping 1 个：ok 1
+15:19:06 ExecuteOpenRvsColumnMapping	打开RVs列映射窗口	打开RVs缺陷匹配的列映射配置窗口	
+ExecuteOpenPanelLayout	打开面板布局编辑器	切换到面板布局编辑视图	
+ExecuteOpenAoiDefectMatch	打开AOI缺陷匹配视图	切换到AOI缺陷匹配输入视图	
+ExecuteOpenPanelCncPcbCompare	打开面板与CNC PCB比对视图	切换到面板与CNC PCB比对输入视图	
+ExecuteOpenZExtractStudio	启动ZExtract Studio工程	准备并打开ZExtract Studio主界面，支持继承XML上下文	
+ExecuteSetWorkspaceMainXml	设置工作区主XML路径	弹窗让用户指定当前工程的主XML文件路径及位置
+15:19:27 批次 49 ExecuteOpenDocumentPcbLegalityRules 3 个：ok 3
+15:19:27 ExecuteOpenDocumentPcbLegalityRules	打开文档合法性规则	在PCB分析器中确保并跳转至合法性规则视图；若未加载则提示用户先打开文件	
+ExecuteOpenZExtractAlgorithmRules	打开Z提取算法规则	切换到Z提取算法规则配置视图	
+ExecuteOpenAoiDefectMatchRules	打开AOI缺陷匹配规则	切换到AOI缺陷匹配规则配置视图	
+ExecuteOpenProjectIndexRules	打开工程索引规则	切换到工程索引规则配置视图	
+ExecuteOpenRvsColumnMapping	打开RVS列映射窗口	弹出RVS字段与数据库列的映射设置对话框	
+ExecuteOpenPanelLayout	打开拼板布局编辑器	切换到拼板布局编辑视图	
+ExecuteOpenAoiDefectMatch	打开AOI缺陷匹配输入	切换到AOI缺陷匹配数据输入视图	
+ExecuteOpenPanelCncPcbCompare	打开拼板与CNC比对输入	切换到拼板与CNC PCB比对数据输入视图	
+ExecuteOpenZExtractStudio	启动Z提取工作室	引导创建/加载工程索引后进入ZExtractStudio主界面	
+GetActiveContextOfType	获取指定类型上下文	返回当前激活的、指定类型的PCB文档上下文；否则null	
+IsActiveContextCncWorkspace	判断是否为CNC工作区	检查当前激活上下文是否属于CNC工作区类型	
+GetActiveCncWorkspaceContext	获取CNC工作区上下文	返回当前激活的CNC工作区上下文；否则null	
+RequireActiveCncWorkspace	校验并获取CNC上下文	若非CNC工作区则弹窗提示，成功时输出该上下文并返回true	
+GetFusionContextForActive	获取当前文档融合上下文	从文档ID字典中查找当前激活文档对应的半自动融合上下文	
+GetFusionContextForSemiAuto	获取任意已完成分组的融合上下文	优先查当前文档，否则遍历查找任一已完成工具分组的半自动融合上下文	
+EnsureDocumentLegalityRules	确保文档合法性规则存在	初始化或更新当前PCB文档的合法性规则配置项（无参数）
+15:19:38 批次 50 ExecuteOpenPcbLegalityRules 1 个：ok 1
+15:19:38 ExecuteOpenPcbLegalityRules	打开PCB合法性规则	打开PCB合法性规则视图	
+ExecuteOpenDocumentPcbLegalityRules	打开文档级合法性规则	在分析器上下文中打开本文档专属的PCB合法性规则；analyzerContext=当前分析器上下文	
+ExecuteOpenZExtractAlgorithmRules	打开Z提取算法规则	打开ZExtract算法规则配置视图	
+ExecuteOpenAoiDefectMatchRules	打开AOI缺陷匹配规则	打开AOI缺陷匹配规则配置视图	
+ExecuteOpenProjectIndexRules	打开工程索引规则	打开工程索引规则配置视图	
+ExecuteOpenRvsColumnMapping	RVS列映射编辑	弹出RVS字段与PCB数据列的映射编辑窗口	
+ExecuteOpenPanelLayout	打开拼板布局编辑器	打开拼板布局编辑视图	
+ExecuteOpenAoiDefectMatch	打开AOI缺陷匹配输入	打开AOI缺陷匹配原始数据输入视图	
+ExecuteOpenPanelCncPcbCompare	打开拼板与CNC比对	打开拼板与CNC加工文件差异比对视图	
+ExecuteOpenZExtractStudio	启动Z提取工作室	引导进入ZExtract Studio工程环境；indexPath=用户选择的工程索引路径
+15:19:49 批次 51 ExecuteOpenZExtractAlgorithmRules 1 个：ok 1
+15:19:49 ExecuteOpenZExtractAlgorithmRules	打开Z提取算法规则视图	打开ZExtractAlgorithmRulesView视图	PcbDocumentContextType=上下文类型
+ExecuteOpenAoiDefectMatchRules	打开AOI缺陷匹配规则视图	打开AoiDefectMatchRulesView视图	PcbDocumentContextType=上下文类型
+ExecuteOpenProjectIndexRules	打开工程索引规则视图	打开ProjectIndexRulesView视图	PcbDocumentContextType=上下文类型
+ExecuteOpenRvsColumnMapping	RVS列映射窗口	弹出RVS列映射对话框	
+ExecuteOpenPanelLayout	打开面板布局编辑器	打开PanelLayoutEditorView视图	PcbDocumentContextType=上下文类型
+ExecuteOpenAoiDefectMatch	打开AOI缺陷匹配输入视图	打开AoiInputView视图（AOI缺陷匹配）	PcbDocumentContextType=上下文类型
+ExecuteOpenPanelCncPcbCompare	打开面板与CNC板对比视图	打开AoiInputView视图（面板/CNC PCB比对）	PcbDocumentContextType=上下文类型
+ExecuteOpenZExtractStudio	启动Z提取工作室	准备工程索引并打开ZExtractStudioView视图	
+ExecuteSetWorkspaceMainXml	设置工作区主XML文件	选择当前工程的主XML文件作为工作区输入源	Project=当前工程（可选）
+15:19:55 批次 52 ExecuteOpenProjectIndexRules 1 个：ok 1
+15:19:55 ExecuteOpenProjectIndexRules	打开工程索引规则	打开工程索引规则视图	
+ExecuteOpenRvsColumnMapping	RVS列映射窗口	打开RVS缺陷匹配列映射对话框	
+ExecuteOpenPanelLayout	打开面板布局编辑器	切换至面板布局编辑视图	
+ExecuteOpenAoiDefectMatch	打开AOI缺陷匹配	切换至AOI缺陷匹配输入视图	
+ExecuteOpenPanelCncPcbCompare	打开面板与CNC PCB比对	切换至面板与CNC PCB比对视图	
+ExecuteOpenZExtractStudio	启动Z提取工作室	准备并打开ZExtractStudio主界面，含工程索引引导	
+ExecuteSetWorkspaceMainXml	设置工作区主XML	指定当前工程的主XML文件路径及用途提示
+15:20:06 批次 53 ExecuteSaveProject 3 个：ok 3
+15:20:06 ExecuteSaveProject	保存当前项目	保存当前工程及主XML索引	
+CanSaveActiveCncWorkspace	检查可存CNC工作区	判断当前是否为有效CNC工作区上下文	
+ExecuteSaveActiveCncWorkspace	保存CNC工作区	保存当前CNC钻孔组数据及PROIDX文件	
+SaveProject	保存指定路径项目	将项目序列化至指定或默认路径；无参数时留空	
+TryExportAfterProjectSave	导出项目后主XML	项目保存后同步导出主XML索引文件（无参数）
+15:20:19 批次 54 ExecuteWriteParamsToPcb 4 个：ok 2
+15:20:19 ExecuteWriteParamsToPcb	写入PCB参数	半自动PCB文档中写入背钻、Z抽出等参数	Trails=工作流日志;Opt=选项;GeomByLayerCode=图层几何数据;ToolLayerByKey=工具层映射;Lands=焊盘列表;EngOffsetDx/Dy=工程偏移量
+ToParameterData	导出参数数据	将ZPlace结果转换为参数数据结构	无
+Start	启动测试流程	初始化并记录测试开始信息	无
+15:20:25 批次 55 ExecuteClearZExtractionInSemiAuto 1 个：ok 1
+15:20:25 ExecuteClearZExtractionInSemiAuto	清除半自动Z抽出	清除半自动上下文中PCB的Z抽出数据（非368.20版本）	无参数
+15:20:33 批次 56 ExecuteExportHalfAutoPcb 1 个：ok 1
+15:20:33 ExecuteExportHalfAutoPcb	导出半自动PCB	导出半自动融合文档的PCB文件	fusionDoc=半自动融合文档对象
+ExecuteCheckPcbXmlHomologous	检查PCB与XML同源	打开只读同源性比对对话框	
+CreateLandMatchPairsAdapter	适配焊盘匹配对创建	将通用参数转为内部类型后调用匹配逻辑	matchedPcbComponents=PCB组件列表;matchedBusinessComponents=业务组件列表;matchedComponentNames=已匹配名称集合;parseResult=PCB解析结果
+ExecuteAddSemiZExtractionToCurrentPcb	添加半自动Z抽出	为当前PCB一次性完成Z抽出操作	fusionContext=半自动融合上下文
+15:20:46 批次 57 ExecuteLoadSemiAutoProjectIndex 4 个：ok 4
+15:20:46 ExecuteLoadSemiAutoProjectIndex	加载半自动工程索引	从用户选择的索引文件加载半自动工程配置并准备后续处理	index=索引文件路径
+ExecuteSaveSemiAutoProjectIndex	保存半自动工程索引	将当前半自动上下文信息保存为工程索引文件	pcbPath=PCB路径;xmlPath=XML路径
+Load	读取打开选项设置	从配置文件加载 PCB 打开参数设置	
+Save	保存打开选项设置	将当前 PCB 打开参数序列化写入配置文件	
+ToOptions	转换为打开选项对象	基于当前设置生成 PcbOpenOptions 实例	
+FromDialog	从对话框创建设置	根据用户在对话框中的选择生成 PcbOpenOptionsSettings 对象	dialog=对话框实例
+ValidateRequiredFiles	校验工程索引必要文件	检查索引中引用的 PCB、XML 等关键文件是否存在	index=待校验的索引对象
+ToProcessInputOptions	转换为处理输入参数	将工程索引内容映射为后续处理所需的输入选项	index=半自动工程索引对象
+15:20:57 批次 58 ExecuteSaveSemiAutoProjectIndex 5 个：ok 5
+15:20:57 ExecuteSaveSemiAutoProjectIndex	保存半自动工程索引	在半自动上下文中生成并保存 .proidx 索引文件	pcb=PCB路径;xml=XML路径
+TrimStart	移除字符串前导空白	返回去除开头指定字符（默认为空白）后的新字符串	str=待处理字符串
+LoadConfig	加载半自动处理配置	从配置文件读取半自动流程参数项	
+FromProcessInputOptions	构建工程索引对象	基于处理选项与工程数据生成索引模型	options=输入选项;eng=工程文件路径
+Save	保存设置到JSON文件	将当前设置序列化并写入配置文件路径	SettingsFilePath=配置文件路径
+15:21:06 批次 59 ExecuteOpenSemiAutoProcessRules 1 个：ok 1
+15:21:06 ExecuteOpenSemiAutoProcessRules	打开半自动流程规则	打开半自动流程规则视图	无参数;  
+ExecuteSemiAutoAddGroupingInfo	加载PCB与XML并分组	导入XML，匹配PCB，按规则分组焊盘；跳过背钻/Z写入	无参数
+15:21:27 批次 60 ExecuteOpenZExtractStudio 6 个：ok 7
+15:21:27 ExecuteOpenZExtractStudio	打开Z抽出工作台	打开Z抽出工作台，加载工程索引并切换视图	path=工程索引路径（可选）
+ExecuteSetWorkspaceMainXml	设置主XML路径	为当前工程指定或确认工作区主XML文件路径	project=当前工程对象
+PromptZExtractStudioProjectIndex	选择工程索引文件	弹出对话框让用户选择.proidx或.prodat并转换	path=
+TryApplyPendingZExtractStudioProjectIndex	应用待处理工程索引	在视图就绪后应用暂存的工程索引路径	ctx=当前上下文；view=目标视图
+IsExistingXmlFile	验证XML文件存在性	检查路径是否为有效存在的.xml文件	path=待检文件路径
+ExecuteSyncZExtractToOmron	同步Z→OMRON数据	将Z抽出窗口信息写回PCB并标记更新标志	xmlPath=当前XML路径
+ExecuteExportCurrentInfoToPcb	导出当前XML至PCB	在XmlToPcbGen上下文中直接触发导出流程	ctx=当前上下文；xmlPath=XML文件路径
+SetPendingInheritedXml	暂存继承XML路径	保存待后续使用的XML路径供继承场景	path=XML文件路径
+SetPendingProjectIndex	暂存工程索引路径	保存待后续应用的工程索引路径	path=工程索引路径
+TryApplyPendingZExtractStudioProjectIndex	应用待处理工程索引	在视图就绪后应用暂存的工程索引路径	ctx=当前上下文；view=目标视图
+ExecuteWriteZExtractXml	写回Z抽出XML	将Z抽出工作台当前修改写入原XML文件	view=目标视图
+ExecuteSaveZExtractXmlAs	另存Z抽出XML为	弹出对话框让用户指定新路径保存XML	view=目标视图
+ExecuteExportPcbFromZExtractStudio	从Z抽出导出PCB	在ZExtractStudio上下文中打开导出面板	ctx=当前上下文
+15:21:34 批次 61 ExecuteOpenUniPcb 1 个：ok 1
+15:21:34 ExecuteOpenUniPcb	打开PCB分析视图	切换至UniPcb视图（需当前为Analyzer上下文）	无
+PromptZExtractStudioProjectIndex	选择工程索引文件	弹窗选择.proidx/.prodat4set/.prodat并处理派生逻辑；取消返回null	无
+TryApplyPendingZExtractStudioProjectIndex	应用待处理工程索引	若非ZExtractStudio上下文则清除挂起的索引路径	无
+15:21:57 批次 62 ExecuteWriteZExtractXml 4 个：ok 4
+15:21:57 ExecuteWriteZExtractXml	写回XML并刷新	view=请求写回XML；ctx=同步上下文XML路径；refresh=触发导出面板刷新	
+ExecuteSaveZExtractXmlAs	另存XML文件	view=请求另存XML；ctx=同步新路径至上下文；refresh=触发导出面板刷新	
+ExecuteExportPcbFromZExtractStudio	打开PCB导出面板	ctx=获取当前ZExtractStudio上下文；sync=绑定XML路径；nav=导航至XmlToPcbExportView；prefill=预填参数	
+SyncZExtractStudioBoundXmlIntoContext	同步XML路径到上下文	ctx=目标上下文；host=从注册表取XML文件路径；update=写入context.XmlFilePath	
+PrefillXmlToPcbExportFromZExtractStudio	预填导出面板参数	ctx=当前ZExtractStudio上下文；xml=读取绑定XML路径；fill=填充至导出视图	
+TryGetActiveZExtractStudioView	获取活动工作台视图	view=输出视图引用；ctx=检查是否为ZExtractStudio上下文；region=定位区域并查找视图实例	
+ExecuteNavigateToSpecCreatorScot	跳转至规格创建器	nav=导航至SpecCreatorScotView	
+ExecuteNavigateToSolderMaskDrawer	跳转至阻焊绘图器	nav=导航至SolderMaskDrawerView	
+ExecuteNavigateToPcbAnalyzer	跳转至PCB分析器	ctx=获取当前上下文类型；target=决定目标上下文（默认AnalyzerView）；nav=导航至PcbAnalyzerView	
+ExecuteNavigateToPcbComparer	新建PCB比较文档	nav=独立创建并导航至PcbComparerView（不复用已有实例）	
+ExecuteExit	退出程序前保存配置	config=保存用户设置；log=记录异常；shutdown=终止应用程序	
+RequestWriteBackXml	请求写回XML	view=检查是否可写入；msg=提示未绑定或未完成放置；exec=执行写回逻辑	
+RequestSaveXmlAs	请求另存XML	as=调用ExecuteSaveXmlAs实现另存功能	
+RefreshXmlToPcbExportAfterZExtractXmlChange	刷新导出面板缓存	ctx=当前上下文；sync=同步XML路径；notify=通知所有相关导出视图刷新
+15:22:08 批次 63 ExecuteSaveZExtractXmlAs 2 个：ok 2
+15:22:08 ExecuteSaveZExtractXmlAs	另存XML为	将当前Z抽出工作台的XML导出为新文件； RequestSaveXmlAs=触发保存操作;  
+ExecuteExportPcbFromZExtractStudio	启动PCB导出面板	在Z抽出工作台中打开XML转PCB导出界面；  
+SyncZExtractStudioBoundXmlIntoContext	同步绑定XML路径	将会话中已绑定的Teaching XML路径写入文档上下文；  
+PrefillXmlToPcbExportFromZExtractStudio	预填导出参数	用当前会话XML路径填充XML转PCB导出面板的初始参数；  
+RefreshXmlToPcbExportAfterZExtractXmlChange	刷新导出面板	XML保存后更新同文档的XML转PCB导出视图；  
+RequestSaveXmlAs	触发另存为操作	调用底层XML另存逻辑；
+15:22:26 批次 64 ExecuteExportPcbFromZExtractStudio 3 个：ok 4
+15:22:26 ExecuteExportPcbFromZExtractStudio	从Z工作台导出PCB	启动从Z抽出工作台导出PCB流程；校验上下文、同步XML并跳转至导出面板	context=context
+SyncZExtractStudioBoundXmlIntoContext	同步Z工作台XML路径	将当前文档绑定的Teaching XML路径写入上下文	context=context
+PrefillXmlToPcbExportFromZExtractStudio	预填XML导出参数	用Session中XML路径填充导出面板参数	context=context
+RefreshXmlToPcbExportAfterZExtractXmlChange	刷新导出面板缓存	XML变更后同步并通知相关导出视图更新	
+TryGetActiveZExtractStudioView	获取Z工作台视图实例	尝试获取当前激活的ZExtractStudioView视图	view=view
+ExecuteNavigateToSpecCreatorScot	跳转至规格创建器	导航至SpecCreatorScotView界面	
+PrefillXmlToPcbExportFromZExtractStudio	预填XML导出参数	用Session中XML路径填充导出面板参数	context=context
+RefreshXmlToPcbExportAfterZExtractXmlChange	刷新导出面板缓存	XML变更后同步并通知相关导出视图更新	
+TryGetActiveZExtractStudioView	获取Z工作台视图实例	尝试获取当前激活的ZExtractStudioView视图	view=view
+ExecuteNavigateToSpecCreatorScot	跳转至规格创建器	导航至SpecCreatorScotView界面	
+ExecuteNavigateToSolderMaskDrawer	跳转至阻焊抽屉	导航至SolderMaskDrawerView界面	
+ExecuteNavigateToPcbAnalyzer	跳转至PCB分析器	导航至PcbAnalyzerView界面（优先当前上下文）	
+ExecuteNavigateToPcbComparer	跳转至PCB比对器	导航至PcbComparerView界面
+15:22:34 批次 65 ExecuteCreateXmlToPcbGenProject 4 个：ok 4
+15:22:34 ExecuteCreateXmlToPcbGenProject	新建XML转PCB工程	从XML文件创建PCB生成工程；XmlFilePath=XML路径；BasePcbFilePath=基础PCB路径	
+LoadForXml	加载XML转PCB配置	按XML路径加载持久化配置对象	
+SaveForXml	保存XML转PCB配置	将配置按XML路径持久化存储	
+NotifyRefreshForXml	刷新XML转PCB视图	通知相关视图更新显示内容	
+RegisterXmlToPcbGenHostBridge	注册XML转PCB桥接服务	初始化跨层调用委托与上下文保障逻辑
+15:22:56 批次 66 ExecuteGeneratePcbFromCurrentXml 6 个：ok 5
+15:22:56 ExecuteGeneratePcbFromCurrentXml	从当前XML生成PCB	基于当前XML上下文执行PCB导出流程	xmlPath=默认XML路径;progressCallback=进度回调;xmlParser=XML解析器;exportHandler=导出处理逻辑;postImportHook=导入后钩子
+ResolveDefaultXmlPathForXmlToPcbTool	获取默认XML路径	按优先级返回可用的XML文件路径	无
+ExecuteSyncZExtractToOmron	同步Z提取至OMRON	将当前XML的ZExtractionWindow写入Land/Pattern并标记更新标志	无
+RunXmlExportPostProcessAsync	执行PCB导出后处理	完成PCB文件生成后的逻辑处理与保存	options=导出选项;xmlImport=XML导入结果;pcbPath=输出PCB路径;reportProgress=进度报告回调
+ApplyToolExportOptionsToContext	应用导出配置到上下文	将导出选项持久化并更新当前上下文信息	options=导出配置;outputPcbPath=输出PCB文件路径
+TryEnsureMatchingXmlToPcbGenContext	匹配并激活XML-PCB上下文	确保活动上下文与指定XML路径一致	xmlPath=XML路径;xmlImport=XML导入结果
+15:23:08 批次 67 ExecuteGeneratePcbFromCurrentXml 3 个：ok 3
+15:23:08 ExecuteGeneratePcbFromCurrentXml	生成PCB文件	根据当前XML生成PCB输出文件	options=导出选项;outputPath=输出PCB路径
+ResolveXmlToPcbGenExportContext	解析导出上下文	获取或创建XML转PCB Gen的文档上下文	xmlFilePath=XML源文件路径;outputPcbPath=目标PCB路径
+RunXmlExportPostProcessAsync	执行后处理逻辑	异步完成XML→PCB生成后的收尾操作	options=导出配置;xmlImport=导入结果;pcbPath=输出路径;reportProgress=进度回调
+FinalizeXmlToPcbGenExport	收尾导出流程	更新文档标题、还原主身份为XML并刷新视图	options=导出选项;outputPcbPath=输出PCB路径
+RaiseCanExecuteChanged	刷新命令状态	触发相关命令的CanExecuteChanged事件	无
+15:23:19 批次 68 ExecuteExportCurrentInfoToPcb 2 个：ok 2
+15:23:19 ExecuteExportCurrentInfoToPcb	导出当前XML到PCB	将当前XML上下文信息导出至PCB工程；ctx=活动上下文；xmlPath=XML文件路径
+TriggerExportOnActiveExportView	触发视图导出请求	在导出面板就绪时发起实际导出操作；ctx=活动上下文；panelVm=导出视图模型
+ExecuteCreateXmlToPcbGenProject	新建XML转PCB工程	基于XML创建轻量级PCB生成工程；dlg=项目对话框；xmlPath=输入XML路径；basePcbPath=基准PCB路径
+15:23:26 批次 69 ExecuteSyncZExtractToOmron 1 个：ok 1
+15:23:26 ExecuteSyncZExtractToOmron	同步Z转OMRON	在XML导出PCB上下文中打开同步对话框以生成OMRON格式文件	ctx=当前活动上下文
+ExecuteExportCurrentInfoToPcb	快速导出至PCB	直接触发当前XML上下文的导出流程，跳过主配置对话框	ctx=当前活动上下文
+TriggerExportOnActiveExportView	触发面板导出	通知当前激活的导出视图执行导出操作	ctx=当前活动上下文
+15:23:35 批次 70 ExecuteImportPcb 2 个：ok 2
+15:23:35 ExecuteImportPcb	导入PCB文件	从文件选择对话框获取PCB路径并执行导入流程	forceShowOptionsDialog=false
+ExecuteLoadPcbAnalyzerIndex	加载工程索引	加载.pcbidx索引文件，解析后绑定至Analyzer上下文并尝试恢复缓存与规则	
+ImportPcbCore	核心PCB导入逻辑	处理PCB导入主流程：含选项对话框控制、路径选择及后续执行	forceShowOptionsDialog=是否强制显示选项对话框
+15:23:52 批次 71 ExecuteLoadPcbAnalyzerIndex 6 个：ok 6
+15:23:52 ExecuteLoadPcbAnalyzerIndex	加载工程索引	加载PCB上下文工程索引文件并绑定到分析视图；indexPath=索引文件路径	
+TryLoad	加载匹配缓存	从工程索引中加载孔层匹配结果；proidxPath=工程索引路径	
+ToOptions	转为打开选项	将设置对象转换为PCB打开参数配置；无	
+ExecuteImportPcb_Exec	导入PCB文件	执行PCB文件导入流程，处理已存在上下文逻辑；strPcbFileAbsPath=PCB文件绝对路径;openOptions=打开选项	
+BindPcbAnalyzerIndex	绑定索引数据	将分析器索引绑定到当前上下文；无	
+TryLoadDocumentLegalityRules	加载合法性规则	尝试从索引中加载文档合法性检查规则；无
+15:23:57 批次 72 ExecuteLoadPcbAnalyzerIndex 1 个：ok 1
+15:23:57 ExecuteLoadPcbAnalyzerIndex	加载PCB分析索引	加载PCB分析器索引文件以供后续处理	ctx=Pcb文档上下文
+TryBindUniPcbSignalLayersFromAnalyzerIndex	绑定信号层索引	尝试从已加载的PCB分析索引中绑定统一信号层	ctx=Pcb文档上下文
+15:24:10 批次 73 ExecuteLoadSignalLayersFromFolder 4 个：ok 3
+15:24:10 ExecuteLoadSignalLayersFromFolder	从文件夹加载信号层	从用户选择的文件夹中批量导入信号层文件；参数：无
+ExecuteLoadSignalLayersFromFile	从单文件加载信号层	从用户选择的一个信号层文件导入；参数：无
+ExecuteLoadSignalLayersFromProjectIndex	从工程索引导入信号层	通过工程索引文件（如.prodat/.proidx）提取并导入信号层；参数：无
+RequireAnalyzerWithPcb	校验分析器与PCB上下文	确保当前有打开的PCB分析器视图且已加载PCB文件；参数：title=对话框标题
+FinishAnalyzerSignalLayerImport	提交信号层至索引文件	将收集到的信号层写入.pcbidx并可选复制源文件；参数：ctx=PCB上下文；svc=导入服务；collected=收集结果；title=操作标题
+15:24:17 批次 74 ExecuteLoadSignalLayersFromFile 2 个：ok 1
+15:24:17 ExecuteLoadSignalLayersFromFile	从文件加载信号层	从指定文件导入信号层数据；fileName=文件路径
+ExecuteLoadSignalLayersFromProjectIndex	从工程索引导入信号层	从工程索引文件中提取并导入信号层；path=工程索引路径
+ExecuteLoadSignalLayersFromTeachingXml	从Teaching XML导入信号层	解析Teaching XML并提取其中的信号层信息；xmlPath=XML文件路径
+15:24:23 批次 75 ExecuteLoadSignalLayersFromProjectIndex 2 个：ok 1
+15:24:23 ExecuteLoadSignalLayersFromProjectIndex	从工程索引导入信号层	从工程索引文件中提取并导入信号层信息	path=path;title=标题文本
+ExecuteLoadSignalLayersFromTeachingXml	从Teaching XML导入信号层	从Teaching XML文件中提取ProjectIndexRef关联的信号层路径=path=path
+15:24:30 批次 76 ExecuteLoadSignalLayersFromTeachingXml 2 个：ok 2
+15:24:30 ExecuteLoadSignalLayersFromTeachingXml	从Teaching XML导入信号层	从教学XML文件中提取并导入信号层信息；仅处理ProjectIndexRef关联的信号层	fileName=XML文件路径
+CollectFromTeachingXml	解析Teaching XML信号层	解析指定XML文件，收集其中的信号层定义数据	fileName=XML文件路径
+15:24:34 批次 77 ExecuteAdvancedImportPcb 1 个：ok 1
+15:24:34 ExecuteAdvancedImportPcb	高级导入PCB	强制显示选项对话框后执行PCB导入；支持跳过重复弹窗并持久化设置	forceShowOptionsDialog=true（隐式）
+15:24:50 批次 78 ExecuteSavePcb 5 个：ok 5
+15:24:50 ExecuteSavePcb	覆盖保存PCB	在当前分析视图中将处理后的PCB数据写回原文件路径；若合法性检查有警告需用户确认	pcbFilePath=待保存的PCB文件路径;analyzerContext=当前PCB分析上下文
+Apply	预钻孔清理处理	对CNC钻孔数据执行去重与合并操作，生成清理结果	parse=CNC解析结果;fileLabel=文件标签;xyToleranceMm=X/Y坐标容差(mm);confirmSampleCount=确认采样数
+RunLegalityCheckOnContext	运行PCB合法性检查	基于上下文规则对PCB数据执行合法性校验并记录报告	context=PCB文档上下文;documentIdForNotify=通知用文档ID;openResultView=是否打开结果视图
+BuildSaveWarning	构建保存警告信息	根据合法性检查报告生成用户可读的保存前警告文本	report=合法性检查报告
+ExportPcbFile	导出PCB文件	将处理后的PCB数据写入指定路径	filePath=目标文件路径;dataManager=数据管理器;parseResult=解析结果;progressCallback=进度回调;useOriginalTextForRootNodes=是否保留根节点原始文本
+15:24:56 批次 79 ExecuteExportPcb 2 个：ok 1
+15:24:56 ExecuteExportPcb	导出PCB文件	从分析器上下文导出解析后的PCB数据到指定文件；parseResult=已解析的节点树；filePath=目标文件路径	TryAllowExport=合法性检查是否允许导出；legalityReport=合法性检查结果
+15:25:06 批次 80 ExecuteSaveAsPcbTemplate 5 个：ok 5
+15:25:06 ExecuteSaveAsPcbTemplate	另存为PCB模板	将当前解析的PCB数据导出为空骨架模板文件；需在Analyzer视图上下文中执行	  
+Extract	提取模板结构	从解析结果中抽取空模板所需的节点结构及分类信息	parseResult=解析结果;classify=输出分类信息
+ResolvePreferredTemplateDirectory	获取默认模板路径	返回推荐的PCB模板存储目录路径	
+StripPcbTmplExtension	移除模板扩展名	去除文件名末尾的.pcb.tmpl后缀	
+EnsurePcbTmplExtension	补全模板扩展名	确保文件名以.pcb.tmpl结尾，避免Win32扩展名处理问题
+15:25:12 批次 81 ExecuteRunPcbLegalityCheck 2 个：ok 1
+15:25:12 ExecuteRunPcbLegalityCheck	执行PCB合法性检查	运行当前分析器中PCB文件的合法性校验；显示错误/警告统计并跳转结果视图	analyzerContext=当前PCB分析器上下文
+ExecuteRepairCurrentPcb	修复当前PCB文件	弹出修复选项对话框并应用结构清理/Z清零/2051枢轴修正等操作	analyzerContext=当前PCB分析器上下文
+15:25:29 批次 82 ExecuteRepairCurrentPcb 5 个：ok 4
+15:25:29 ExecuteRepairCurrentPcb	修复当前PCB	在分析器视图中对当前PCB执行结构清洗与修复处理；支持多级清理选项并可选保存为新文件	path=pcb文件路径;levels=清洗级别标志;archiveFixed=是否归档原始文件
+CreateForRepairCurrent	创建修复对话框	初始化用于修复操作的选项对话框，预设常用清洗项勾选状态	pcbFilePath=PCB文件路径
+ApplyAnalyzerSanitizeAndArchive	执行并归档清洗	对分析器上下文应用清洗逻辑，并分阶段保存中间结果；含origin归档与fixed存档	analyzerContext=分析器上下文;pcbFilePath=原始文件路径;levels=清洗级别;archiveFixed=是否归档修复后文件
+SavePcbFile	另存PCB文件	弹出保存对话框，将解析结果写入指定路径的PCB或文本文件	parseResult=解析结果;defaultPath=默认保存路径;dataManager=数据管理器
+15:25:40 批次 83 ExecuteReorderCriterionItemsByCanonicalOrder 4 个：ok 4
+15:25:40 ExecuteReorderCriterionItemsByCanonicalOrder	按顺位重排算法项	按 Canonical 首次出现顺序重排全部算法项并同步挂接组	analyzerContext=活动分析器上下文
+ArchiveOriginal	归档原始 PCB	备份当前 PCB 文件至历史目录（用于恢复）	pcbPath=PCB 文件路径
+Reorder	执行重排操作	调用重排引擎对数据进行排序	reorderer=重排器实例；data=待重排数据
+TryRefreshAnalyzerCriterionUi	刷新分析器 UI	更新 Analyzer 视图中算法组/项/顺位表及树结构	analyzerContext=分析器上下文
+ExecuteClearZExtractionInAnalyzerPcb	清除 Z 抽出项	删除全部 Z 抽出窗口并紧致化索引	analyzerContext=活动分析器上下文
+15:25:47 批次 84 ExecuteClearZExtractionInAnalyzerPcb 1 个：ok 1
+15:25:47 ExecuteClearZExtractionInAnalyzerPcb	清除Z抽出项	清除当前PCB全部Z抽出窗口及对应算法组/项并紧致化索引；无参数	
+ExecuteSavePcb	覆盖保存PCB	覆盖保存当前分析器中的PCB文件，不弹另存对话框且不归档原件；无参数
+15:25:47 写入 198 条，失败 3 个。文件 G:\myfuture\OdaafGenerator\notes\accepted-flow-notes.json
+15:29:01 待填 23，同名冲突跳过 0。
+15:29:14 批次 1 ExecuteImportXmlData 3 个：ok 3
+15:29:14 ExecuteImportXmlData	执行XML数据导入	从XML文件导入PCB设计数据到当前上下文	xmlPath=XML文件路径;preParsedResult=预解析结果（可选）
+CreateXmlImportProgressWindow	创建导入进度窗口	创建并返回带状态文本、进度条和详情文本的进度对话框	title=窗口标题;statusText=状态文本输出参数;progressBar=进度条输出参数;detailText=详情文本输出参数
+EnsureCncWorkspaceContextAndViewForXmlImport	确保XML导入上下文与视图	确保存在可用的CncWorkspace上下文并激活NewSpecCreatorView	
+RaiseImportStatus	提升导入状态消息	将导入过程中的关键状态信息报告给用户界面	
+EnsureAndActivateXmlToPcbGenForExport	确保导出用PCB生成上下文	为XML转PCB导出准备独立上下文、绑定数据并激活对应文档标签页	xmlFilePath=XML文件路径;preParsedResult=预解析结果（可选）
+15:29:18 批次 2 ExecuteAddBackdrillParametersToCurrentPcb 1 个：模型有文字，但没有对上方法名。
+15:29:18 ExecuteAddBackdrillParametersToCurrentPcb	将背钻参数写入当前PCB	导入XML并匹配后，向当前PCB写入背钻、Z抽出等参数	PcbDocument=当前PCB文档;XmlData=XML数据
+15:29:21 批次 3 ExecuteExportXmlData 1 个：ok 1
+15:29:21 ExecuteExportXmlData	导出XML数据	将当前菜单配置或内容导出为XML格式文件	data=待导出的数据对象;filePath=目标文件路径
+ExportXmlData	生成XML数据	基于当前菜单结构生成XML字符串表示	data=菜单数据源
+15:29:24 批次 4 ExecuteExportXmlToAssetDirectory 1 个：ok 1
+15:29:24 ExecuteExportXmlToAssetDirectory	导出XML到资源目录	将XML数据导出至指定资源目录	assetDir=目标资源目录路径
+ExportXmlDataToAssetDirectory	导出XML数据到资源目录	将XML格式的数据保存到资源目录中	assetDir=目标资源目录路径
+15:29:26 批次 5 ExecuteGenerateOmr 1 个：ok 1
+15:29:26 ExecuteGenerateOmr	生成OMR文件	根据配置生成OMR答题卡文件	
+GenerateOmrFile	创建OMR文件	执行OMR文件生成流程并保存结果
+15:29:28 批次 6 ExecuteExit 1 个：ok 1
+15:29:28 ExecuteExit	退出程序	关闭应用程序并终止进程	无参数;  
+Shutdown	关闭系统	关闭操作系统或当前应用的运行环境	无参数
+15:29:30 批次 7 ExecuteSaveActiveCncWorkspace 1 个：ok 1
+15:29:30 ExecuteSaveActiveCncWorkspace	保存当前工作区	将当前激活的CNC工作区保存到文件；无参数	
+TrySaveCncWorkspace	尝试保存工作区	尝试保存指定的CNC工作区，失败不抛异常；workspace=待保存的工作区对象
+15:29:37 批次 8 ExecuteCheckPcbXmlHomologous 1 个：ok 1
+15:29:37 ExecuteCheckPcbXmlHomologous	执行同源检查对话框	打开同源性比对输入对话框以启动PCB XML同源检查	  
+CreateLandMatchPairsAdapter	适配焊盘匹配对创建	将object列表转换为强类型后调用核心匹配对生成方法	matchedPcbComponents=待转换的PCB组件对象列表;matchedBusinessComponents=业务组件布局列表;matchedComponentNames=已匹配组件名称集合;parseResult=PCB解析结果  
+ExecuteAddSemiZExtractionToCurrentPcb	半自动添加Z抽出	为当前PCB执行一步式Z轴抽出操作（需先完成分组）	无
+15:29:47 批次 9 ExecuteOpenInspectionDefect 2 个：ok 1
+15:29:47 ExecuteOpenInspectionDefect	打开检测缺陷数据	选择Omron XML与RVS CSV并启动缺陷分析界面	dXml=XML文件路径; dCsv=CSV文件路径  
+ExecuteOpenProjectManagement	打开项目管理界面	切换至项目管理视图	
+ExecuteOpenPcbLegalityRules	打开PCB合法性规则界面	切换至PCB合法性规则配置视图	
+ExecuteOpenDocumentPcbLegalityRules	打开文档合法性规则界面	在分析器已加载前提下，配置当前文档的合法性规则	
+ExecuteOpenZExtractAlgorithmRules	打开Z提取算法规则界面	切换至Z提取算法规则配置视图	
+ExecuteOpenAoiDefectMatchRules	打开AOI缺陷匹配规则界面	切换至AOI缺陷匹配规则配置视图	
+ExecuteOpenProjectIndexRules	打开项目指标规则界面	切换至项目指标规则配置视图	
+ExecuteOpenRvsColumnMapping	打开RVS列映射窗口	弹出RVS字段与检测结果列的映射设置对话框	
+ExecuteOpenPanelLayout	打开拼板布局编辑界面	切换至拼板布局编辑视图
+15:29:52 批次 10 ExecuteSemiAutoAddGroupingInfo 1 个：模型有文字，但没有对上方法名。
+15:29:52 ExecuteSemiAutoAddGroupingInfo	半自动导入并分组	导入XML并匹配PCB分组，不处理背钻与Z轴数据	importXmlAdapter=XML适配器对象
+15:30:00 批次 11 ExecuteWriteParamsToPcb 2 个：ok 1
+15:30:00 ExecuteWriteParamsToPcb	写入PCB参数	将XML匹配结果写入PCB文档（含背钻/Z/ISU等）	
+Place	布放Z孔位置	按策略处理孔数据并布放Z轴补偿位置；支持ISU优先、冷区管线及常规模式；可选配对与进度反馈	lands=待处理孔列表;toolLayerByKey=工具层映射;geomByLayerCode=信号层几何数据;engOffsetDx=工程偏移X;engOffsetDy=工程偏移Y;opt=布放选项;componentBoxOf=元件边界获取函数;onLandProgress=进度回调;trail=流程追踪对象
+15:30:32 批次 12 ExecuteWriteZExtractXml 1 个：ok 1
+15:30:32 ExecuteWriteZExtractXml	执行Z抽出XML写入	将当前Z抽出数据写入XML文件	viewportHost=视口宿主；SignalLayers=信号层列表；SignalLayerItems=信号层条目集合；WorkflowNodes=工作流节点VM集合；Footprints=封装库列表；ToolMappingItems=刀具映射项集合；CurrentLayerTools=当前层刀具集合；AssignableTools=可分配刀具集合；HoleToolFilterItems=孔显示刀具白名单；ProblemPadItems=问题焊盘项集合；HoleInventoryItems=全孔Z抽出清单
+RequestWriteBackXml	请求写回XML文件	检查条件后执行XML写回或提示用户准备就绪	
+RequestSaveXmlAs	另存为XML文件	弹出保存对话框，将当前数据另存为新XML文件	
+ViewportHost	视口宿主属性	获取或设置Z抽出信号层视图宿主对象	
+SignalLayers	信号层名称列表	只读集合：当前加载的信号层名字符串列表	
+SignalLayerItems	信号层条目集合	只读集合：含层信息与状态的条目项集合	
+WorkflowNodes	工作流节点VM集合	只读集合：Z抽出流程各步骤视图模型列表	
+Footprints	封装库名称列表	只读集合：可用封装（Footprint）名字符串列表	
+ToolMappingItems	刀具映射项集合	只读集合：层与刀具匹配关系项列表  
+CurrentLayerTools	当前层刀具集合	只读集合：当前选中信号层关联的所有刀具项
+AssignableTools	可分配刀具集合	只读集合：能指派至本层的可用刀具（含他用/未指定）
+HoleToolFilterItems	孔显示刀具白名单	只读集合：控制视口中哪些刀具孔可见的过滤项
+ProblemPadItems	问题焊盘项集合	只读集合：检测到异常或缺失的焊盘条目列表
+HoleInventoryItems	全孔Z抽出清单	只读集合：所有孔的Z抽出结果，首属性标识是否含自身焊盘
+SelectedHoleInventory	选中孔清单项	当前在底部孔清单列表中选中的ZExtractHoleInventoryItem对象
+HoleInventoryFilter	孔清单筛选条件	字符串：用于过滤孔清单显示内容（如"All"/"NoPad"等）
+HoleInventorySummary	孔清单汇总信息	字符串：显示当前孔清单状态与操作提示文本
+LastPlaceResult	Z放置结果缓存	上次Z/ISU放置操作的执行结果对象
+LastPlaceOptions	Z放置选项缓存	上次Z/ISU放置时使用的配置参数对象
+SuppressHoleInventoryNavigate	禁用清单导航标志	布尔：控制是否跳过因属性变更触发的自动导航
+BottomListTabIndex	底部列表当前标签页索引	整数：底部多标签页中激活页签的序号
+ToolLayerMatchSummary	刀具层匹配汇总信息	字符串：显示按孔几何校正后的刀具↔层匹配结果摘要
+HolePadMatchSummary	孔焊盘匹配汇总信息	字符串：展示每个孔贴合到的自身焊盘/层详情
+HolePadMatchFilter	孔焊盘匹配筛选条件	字符串：控制孔焊盘匹配列表显示范围（如"全部"/"Mismatch"）
+HolePadMatchToolFilter	孔焊盘匹配刀具过滤器	字符串：按指定刀具名进一步筛选匹配结果
+SelectedToolLayerMatch	选中刀具层匹配项	当前在刀具↔层校正表中选中的ZExtractHoleLayerMatchProposal对象
+SelectedHolePadMatch	选中孔焊盘匹配项	当前在孔焊盘匹配表中选中的ZExtractHolePadMatchItem对象
+LayerThicknessSummary	层厚估算汇总信息	字符串：显示层厚计算逻辑与结果说明（含正钻/背钻规则）
+IsuZIssueSummary	ISU/Z问题汇总信息	字符串：展示Z出窗、ISU不足或缺失等异常的概要
+IsuZIssueFilter	ISU/Z问题筛选条件	字符串：过滤显示特定类型的问题（如"Z出窗"/"缺Z"）
+SelectedIsuZIssue	选中ISU/Z问题项	当前在问题列表中选中的ZExtractIsuZIssueItem对象
+AllIsuZIssues	全部ISU/Z问题缓存	内部列表：存储所有检测到的ISU/Z相关异常条目
+SelectedLayerThickness	选中层厚条目	当前在层厚表中选中的LayerThicknessEntry对象
+BoardThicknessMm	板厚毫米值	双精度浮点数：用户或自动计算的整板厚度（mm）
+BoardThicknessSource	板厚来源说明	字符串：标识板厚数据来源（如"未设置"/"自动估算"/"用户指定"）
+BoardThicknessUserSet	板厚是否手动设定	布尔：true表示由用户显式输入过板厚值
+SuppressBoardThickness	禁用板厚更新标志	布尔：控制是否忽略层厚变更导致的板厚重算
+AllHolePadMatches	全部孔焊盘匹配缓存	内部列表：存储所有孔与焊盘的匹配分析结果
+SelectedFootprint	选中封装名称	字符串：当前在封装下拉框中选定的封装ID或名
+15:30:36 批次 13 ExecuteGeneratePcbFromCurrentXml 1 个：ok 1
+15:30:36 ExecuteGeneratePcbFromCurrentXml	从当前XML生成PCB	根据当前XML数据生成PCB布局文件	
+RunAsync	异步运行任务	以异步方式执行指定操作	
+15:30:38 批次 14 ExecuteLoadSignalLayersFromFolder 1 个：ok 1
+15:30:38 ExecuteLoadSignalLayersFromFolder	从文件夹加载信号层	从指定文件夹加载信号层数据	path=文件夹路径
+CollectFromFolder	收集文件夹内容	收集并汇总指定文件夹中的所有项	path=文件夹路径
+15:30:41 批次 15 ExecuteLoadSignalLayersFromFile 1 个：ok 1
+15:30:41 ExecuteLoadSignalLayersFromFile	从文件加载信号层	从指定文件中加载信号层数据	filePath=文件路径
+CollectFromFile	收集文件中的信号层	从指定文件中读取并收集信号层信息	filePath=文件路径
+15:30:42 批次 16 ExecuteLoadSignalLayersFromProjectIndex 1 个：ok 1
+15:30:42 ExecuteLoadSignalLayersFromProjectIndex	从项目索引加载信号层	根据项目索引加载信号层数据	
+CollectFromProjectIndex	收集项目索引信息	汇总并返回当前项目的索引信息
+15:30:44 批次 17 ExecuteExportPcb 1 个：ok 1
+15:30:44 ExecuteExportPcb	导出PCB文件	执行PCB数据导出操作	无  
+TryAllowExport	尝试允许导出	检查并设置是否允许进行导出操作	无
+15:30:46 批次 18 ExecuteRunPcbLegalityCheck 1 个：ok 1
+15:30:46 ExecuteRunPcbLegalityCheck	执行PCB合规性检查	运行PCB设计规则合法性校验	无
+AppendLine	追加一行文本	向当前内容末尾添加换行符	无
+15:30:49 批次 19 ExecuteRepairCurrentPcb 1 个：模型有文字，但没有对上方法名。
+15:30:49 ExecuteRepairCurrentPcb	修复当前PCB	执行对当前选中PCB板的修复操作；无	=
+15:30:49 写入 18 条，失败 3 个。文件 G:\myfuture\OdaafGenerator\notes\accepted-flow-notes.json
+15:31:48 待填 5，同名冲突跳过 0。
+15:32:17 待填 5，同名冲突跳过 0。
+15:32:57 待填 5，同名冲突跳过 0。
+15:33:02 批次 1 ExecuteAddBackdrillParametersToCurrentPcb 1 个：模型有文字，但没有对上方法名。
+15:33:02 ExecuteAddBackdrillParametersToCurrentPcb	添加背钻参数至当前PCB	半自动模式下导入XML并写入背钻等参数至当前PCB文档	name=pcbDoc;xmlPath=XML文件路径
+15:33:05 批次 2 ExecuteOpenInspectionDefect 1 个：ok 1
+15:33:05 ExecuteOpenInspectionDefect	打开待检缺陷记录	打开指定的待检缺陷记录以供查看或编辑	
+SetPending	设置为待处理状态	将当前缺陷记录的状态标记为待处理，等待进一步处理	inspectionId=缺陷ID;status=目标状态值
+15:33:08 批次 3 ExecuteSemiAutoAddGroupingInfo 1 个：模型有文字，但没有对上方法名。
+15:33:08 ExecuteSemiAutoAddGroupingInfo	半自动添加分组信息	导入XML并匹配PCB分组，不处理背钻与Z轴数据	name=pcbDoc; xmlPath=XML文件路径
+15:33:12 批次 4 ExecuteWriteParamsToPcb 1 个：模型有文字，但没有对上方法名。
+15:33:12 ExecuteWriteParamsToPcb	将参数写入PCB	导入XML并匹配分组后，写入背钻、Z抽出、ISU与Z补正参数；半自动模式下每板独立处理	PcbDocumentContextType=上下文类型;IsSemiAuto=是否半自动模式
+15:33:15 批次 5 ExecuteRepairCurrentPcb 1 个：模型有文字，但没有对上方法名。
+15:33:15 ExecuteRepairCurrentPcb	修复当前PCB	执行对当前PCB板的修复操作；	=
+15:33:15 写入 1 条，失败 4 个。文件 G:\myfuture\OdaafGenerator\notes\accepted-flow-notes.json
+15:34:15 待填 5，同名冲突跳过 0。
+15:34:17 批次 1 ExecuteAddBackdrillParametersToCurrentPcb 1 个：ok 1
+15:34:17 ShowInfo	显示信息	显示当前PCB文档的背钻与Z抽出等关键参数	
+15:34:21 批次 2 ExecuteOpenInspectionDefect 1 个：ok 5
+15:34:21 SetPending	SetPending	将缺陷标记为待处理状态；	
+SetPending	SetPending	设置当前检查项的待处理状态；	
+SetPending	SetPending	将缺陷记录置为待处理；	
+SetPending	SetPending	更新缺陷状态为待处理；	
+SetPending	SetPending	将缺陷设为待处理；
+15:34:24 批次 3 ExecuteSemiAutoAddGroupingInfo 1 个：ok 1
+15:34:24 importXmlAdapter	导入XML配对数据	name=PCB文档路径;xml文件路径
+15:34:27 批次 4 ExecuteWriteParamsToPcb 1 个：ok 1
+15:34:27 ToDebugText	调试信息输出	生成并返回当前对象的调试文本表示；无副作用；用于日志或诊断	
+15:34:30 批次 5 ExecuteRepairCurrentPcb 1 个：ok 1
+15:34:30 ToSummary	汇总当前数据	返回当前PCB维修任务的摘要信息；	
+---  
+ToSummary
+15:34:30 写入 5 条，失败 0 个。文件 G:\myfuture\OdaafGenerator\notes\accepted-flow-notes.json
+15:35:43 待填 0，同名冲突跳过 0。

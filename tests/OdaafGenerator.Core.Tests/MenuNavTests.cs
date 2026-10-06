@@ -113,6 +113,51 @@ public class MenuNavTests
         Assert.DoesNotContain(handler.Children, child => child.Title == FileMenu.ImportXmlMethod);
     }
 
+    [Fact]
+    public void Filter_MatchesFriendlyNameAndKeepsOrigin()
+    {
+        var phase = new NavNode("执行", NavNode.Phase, mainFlow: true);
+        phase.Children.Add(new NavNode(
+            "PerformLandMatchingAndGrouping",
+            NavNode.Function,
+            "PerformLandMatchingAndGrouping",
+            "Baile.Pcb.PerformLandMatchingAndGrouping",
+            mainFlow: true));
+        var handler = new NavNode("ExecuteWriteParamsToPcb", NavNode.Function, "ExecuteWriteParamsToPcb", mainFlow: true);
+        handler.Children.Add(phase);
+        var menu = new NavNode("参数写入PCB", NavNode.Menu, "ExecuteWriteParamsToPcb");
+        menu.Children.Add(handler);
+        var root = new NavNode("PCB半自动处理", NavNode.Group);
+        root.Children.Add(menu);
+        var roots = new List<NavNode> { root };
+
+        Assert.Same(roots, MenuNavTree.Filter(roots, "  "));
+
+        var byName = MenuNavTree.Filter(roots, "配盘");
+        var hit = Find(byName, "PerformLandMatchingAndGrouping");
+        Assert.NotNull(hit);
+        Assert.True(Find(byName, "PCB半自动处理")!.Expanded);
+        Assert.Contains(handler.Children, child => child.Title == "执行");
+
+        var byMethod = MenuNavTree.Filter(roots, "WriteParams");
+        Assert.NotNull(Find(byMethod, "ExecuteWriteParamsToPcb"));
+        Assert.NotNull(Find(byMethod, "参数写入PCB"));
+    }
+
+    private static NavNode? Find(IEnumerable<NavNode> nodes, string title)
+    {
+        foreach (var node in nodes)
+        {
+            if (node.Title == title)
+                return node;
+            var nested = Find(node.Children, title);
+            if (nested is not null)
+                return nested;
+        }
+
+        return null;
+    }
+
     private static IEnumerable<NavNode> CommandsOf(NavNode node) =>
         node.Children.SelectMany(child =>
             child.MethodName is null ? CommandsOf(child) : [child]);

@@ -40,6 +40,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private IReadOnlyList<FunctionCard> _zCards = [];
     private IReadOnlyList<GraphEdge> _zEdges = [];
     private IReadOnlyList<WorkspaceView> _contextViews = [];
+    private IReadOnlyList<NavNode> _sourceNav = [];
+    private string _navQuery = "";
+    private CallLayerGraph? _activeLayer;
+    private bool _showingSegments;
+    private LayerBrief? _currentBrief;
+    private string _briefMarkdown = "";
+    private string _proposalStatus = "";
     private IReadOnlyList<NavNode> _navRoots = [];
     private IReadOnlyList<FunctionCard> _navCards = [];
     private IReadOnlyList<GraphEdge> _navEdges = [];
@@ -59,9 +66,13 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _chosenLevel = Levels[3];
         LayoutPath = LayoutLocation.DefaultFile();
         _projectFilePath = GeneratorProject.FindDefaultFile() ?? "";
+        FlowNotes.ReplaceAccepted(AcceptedNotes.Read(AcceptedNotesPath()));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event Action<string>? RevealRequested;
+
+    public ObservableCollection<NameProposal> Proposals { get; } = [];
 
     public IReadOnlyList<SearchLevelOption> Levels { get; }
     public string LayoutPath { get; }
@@ -71,6 +82,43 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         get => _projectFilePath;
         set => Set(ref _projectFilePath, value);
+    }
+
+    public string NavQuery
+    {
+        get => _navQuery;
+        set
+        {
+            if (!Set(ref _navQuery, value))
+                return;
+            NavRoots = MenuNavTree.Filter(_sourceNav, _navQuery);
+        }
+    }
+
+    public bool ShowingSegments
+    {
+        get => _showingSegments;
+        private set => Set(ref _showingSegments, value);
+    }
+
+    public bool HasSegments => _activeLayer is not null && FlowGroups.Has(_activeLayer.Caller.SimpleName);
+
+    public LayerBrief? CurrentBrief
+    {
+        get => _currentBrief;
+        private set => Set(ref _currentBrief, value);
+    }
+
+    public string BriefMarkdown
+    {
+        get => _briefMarkdown;
+        private set => Set(ref _briefMarkdown, value);
+    }
+
+    public string ProposalStatus
+    {
+        get => _proposalStatus;
+        private set => Set(ref _proposalStatus, value);
     }
 
     public string SearchText
@@ -251,7 +299,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             (_menuCards, _menuEdges) = FileMenu.Build(_catalog, _layout);
             OnPropertyChanged(nameof(MenuCards));
             ProjectIndex = ProjectIndexInfo.From(project, LayoutPath, projects.Count, rows.Count);
-            NavRoots = MenuNavTree.Build(_catalog);
+            _sourceNav = MenuNavTree.Build(_catalog);
+            NavRoots = MenuNavTree.Filter(_sourceNav, _navQuery);
             Documents.Clear();
             ContextId = project.DefaultContextId switch
             {
@@ -275,6 +324,10 @@ public sealed class MainViewModel : INotifyPropertyChanged
             _zCards = [];
             ProjectIndex = null;
             NavRoots = [];
+            _sourceNav = [];
+            _activeLayer = null;
+            CurrentBrief = null;
+            BriefMarkdown = "";
             NavCards = [];
             NavEdges = [];
             SelectedNav = null;
@@ -405,13 +458,22 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
 
         var layer = CallLayerGraph.Expand(symbol, _project.SourceRoot, _catalog);
-        var graph = layer.Cards(_layout);
-        NavCards = graph.Cards;
-        NavEdges = graph.Edges;
-        SelectedCard = graph.Cards.FirstOrDefault();
+        if (FrameworkCalls.IsMenuHandler(symbol.SimpleName))
+        {
+            _activeLayer = layer;
+            RefreshBrief();
+            OnPropertyChanged(nameof(HasSegments));
+        }
+
+        if (FlowGroups.Has(symbol.SimpleName))
+            ShowSegments();
+        else
+            ShowFlat(layer);
         Status = layer.Menu
             ? $"{symbol.SimpleName} 模式A。主流程只画执行，空段不显示。"
             : $"{symbol.SimpleName} 模式B。主流程只画执行，空段不显示。";
+        if (ShowingSegments)
+            Status = $"{symbol.SimpleName} 简图。点一段看里面的函数。";
         RefreshLine();
     }
 
@@ -534,11 +596,135 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         if (card is null)
             return;
+        if (card.SyntaxPath.Contains("@segment:", StringComparison.Ordinal) && _activeLayer is not null && _layout is not null)
+        {
+            ShowSegment(card.Name);
+            return;
+        }
+
         SelectedCard = card;
         if (ActiveDocument?.ViewId == ViewIds.ClassScatter)
             Status = $"簇 {card.Name}，{card.StepLabel}";
         else
             Status = $"{card.StepLabel}  {card.Name}";
+    }
+
+    public void ShowSegments()
+    {
+        if (_activeLayer is null || _layout is null || !FlowGroups.Has(_activeLayer.Caller.SimpleName))
+            return;
+        var graph = _activeLayer.Segments(_layout);
+        NavCards = graph.Cards;
+        NavEdges = graph.Edges;
+        SelectedCard = graph.Cards.FirstOrDefault();
+        ShowingSegments = true;
+        Status = $"{_activeLayer.Caller.SimpleName} 简图。点一段看里面的函数。";
+    }
+
+    public void ShowAllBoxes()
+    {
+        if (_activeLayer is null)
+            return;
+        ShowFlat(_activeLayer);
+        Status = $"{_activeLayer.Caller.SimpleName} 逐框。";
+    }
+
+    public void FocusExecuteRow(ExecuteRow? row)
+    {
+        if (row is null || _activeLayer is null)
+            return;
+        ShowFlat(_activeLayer);
+        var card = NavCards.FirstOrDefault(item => item.SyntaxPath == row.SyntaxPath);
+        if (card is not null)
+            SelectedCard = card;
+        RevealRequested?.Invoke(row.SyntaxPath);
+    }
+
+    public void ExportBrief()
+    {
+        if (_currentBrief is null || _activeLayer is null)
+        {
+            Status = "先点开半自动的加载配对或参数写入。";
+            return;
+        }
+
+        var directory = Path.Combine(RepoRoot(), "docs", "semi-auto");
+        LayerMarkdown.Write(directory, _currentBrief, _activeLayer);
+        BriefMarkdown = LayerMarkdown.Render(_currentBrief, _activeLayer);
+        Status = $"已写出 {Path.Combine(directory, LayerMarkdown.FileName(_currentBrief.Handler))}";
+    }
+
+    public async Task ProposeNamesAsync()
+    {
+        if (_activeLayer is null)
+        {
+            ProposalStatus = "先点开一个菜单处理函数。";
+            return;
+        }
+
+        var missing = NameProposals.Missing(_activeLayer);
+        if (missing.Count == 0)
+        {
+            Proposals.Clear();
+            ProposalStatus = "这一层的直接调用都已经有中文名。";
+            return;
+        }
+
+        var model = Environment.GetEnvironmentVariable("ODAAF_LOCAL_MODEL");
+        if (string.IsNullOrWhiteSpace(model))
+            model = NameProposals.LuxrayModel;
+        var endpoint = Environment.GetEnvironmentVariable("ODAAF_LOCAL_LLM");
+        if (string.IsNullOrWhiteSpace(endpoint))
+            endpoint = NameProposals.LuxrayChat;
+        ProposalStatus = "正在询问 Luxray…";
+        var asked = await NameProposals.TryAskAsync(
+            endpoint,
+            model,
+            NameProposals.Prompt(
+                _activeLayer.Caller.SimpleName,
+                NameFill.SkillFor(_activeLayer.Caller.SimpleName),
+                _project?.SourceRoot ?? "",
+                missing),
+            missing,
+            CancellationToken.None);
+        Proposals.Clear();
+        var chosen = asked.Proposals ?? missing.Select(NameProposals.FromDoc).ToList();
+        foreach (var proposal in chosen)
+            Proposals.Add(proposal);
+        ProposalStatus = asked.Proposals is null
+            ? $"Luxray 没有可用结果（{asked.Error}）。已用方法上的 /// 作为待接受建议。"
+            : $"Luxray 返回 {asked.Proposals.Count} 条。勾选后接受。";
+    }
+
+    public void AcceptProposals()
+    {
+        var path = AcceptedNotesPath();
+        var notes = AcceptedNotes.Read(path);
+        var taken = 0;
+        foreach (var proposal in Proposals.Where(item => item.Accept && !string.IsNullOrWhiteSpace(item.Title)))
+        {
+            notes[proposal.MethodName] = new FlowNotes.Note(
+                proposal.Purpose,
+                proposal.Parameters,
+                "",
+                proposal.Title);
+            taken++;
+        }
+
+        if (taken == 0)
+        {
+            ProposalStatus = "先勾选要接受的短名。";
+            return;
+        }
+
+        AcceptedNotes.Write(path, notes);
+        FlowNotes.ReplaceAccepted(notes);
+        ProposalStatus = $"已接受 {taken} 条，写入 {path}。手写表里已有的名字不变。";
+        RefreshBrief();
+        if (_activeLayer is not null && ShowingSegments)
+            ShowSegments();
+        else if (_activeLayer is not null)
+            ShowFlat(_activeLayer);
     }
 
     public void SaveLayout()
@@ -675,6 +861,58 @@ public sealed class MainViewModel : INotifyPropertyChanged
         document.Edges = graph.Edges;
         SelectedCard = graph.Cards.FirstOrDefault();
         Status = $"{symbol.SimpleName} 的上一层有 {layer.Calls.Count} 个直接调用。不跨进被调函数。";
+    }
+
+    private void ShowFlat(CallLayerGraph layer)
+    {
+        if (_layout is null)
+            return;
+        var graph = layer.Cards(_layout);
+        NavCards = graph.Cards;
+        NavEdges = graph.Edges;
+        SelectedCard = graph.Cards.FirstOrDefault();
+        ShowingSegments = false;
+    }
+
+    private void ShowSegment(string segment)
+    {
+        if (_activeLayer is null || _layout is null)
+            return;
+        var graph = _activeLayer.SegmentDetail(_layout, segment);
+        NavCards = graph.Cards;
+        NavEdges = graph.Edges;
+        SelectedCard = graph.Cards.Skip(1).FirstOrDefault() ?? graph.Cards.FirstOrDefault();
+        ShowingSegments = false;
+        Status = $"{segment}：{Math.Max(0, graph.Cards.Count - 1)} 个函数。";
+    }
+
+    private void RefreshBrief()
+    {
+        if (_activeLayer is null || !FlowGroups.Has(_activeLayer.Caller.SimpleName))
+        {
+            CurrentBrief = null;
+            BriefMarkdown = "";
+            return;
+        }
+
+        CurrentBrief = LayerBrief.For(_activeLayer.Caller.SimpleName, _activeLayer);
+        BriefMarkdown = CurrentBrief is null ? "" : LayerMarkdown.Render(CurrentBrief, _activeLayer);
+    }
+
+    private static string AcceptedNotesPath() =>
+        Path.Combine(RepoRoot(), "notes", "accepted-flow-notes.json");
+
+    private static string RepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            if (File.Exists(Path.Combine(dir.FullName, "OdaafGenerator.sln")))
+                return dir.FullName;
+            dir = dir.Parent;
+        }
+
+        return AppContext.BaseDirectory;
     }
 
     private void RefreshContextViews() =>

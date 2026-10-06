@@ -8,6 +8,7 @@ namespace OdaafGenerator.App;
 public partial class MainWindow : Window
 {
     private readonly MainViewModel _model = new();
+    private LayerSummaryWindow? _summary;
 
     public MainWindow()
     {
@@ -15,6 +16,7 @@ public partial class MainWindow : Window
         DataContext = _model;
         NavFlow.CardChosen += (_, card) => _model.SelectCard(card);
         NavFlow.DragCompleted += (_, _) => _model.SaveLayout();
+        _model.RevealRequested += path => NavFlow.Reveal(path);
         _model.PropertyChanged += (_, args) =>
         {
             if (args.PropertyName is nameof(MainViewModel.NavCards) or nameof(MainViewModel.NavEdges))
@@ -66,6 +68,17 @@ public partial class MainWindow : Window
     private void ViewScatter_Click(object sender, RoutedEventArgs e) => _model.Navigate(ViewIds.ClassScatter);
 
     private void ViewLayer_Click(object sender, RoutedEventArgs e) => _model.Navigate(ViewIds.FunctionLayer);
+
+    private void Summary_Click(object sender, RoutedEventArgs e)
+    {
+        _summary ??= new LayerSummaryWindow(_model);
+        _summary.Show();
+        _summary.Activate();
+    }
+
+    private void Segments_Click(object sender, RoutedEventArgs e) => _model.ShowSegments();
+
+    private void Boxes_Click(object sender, RoutedEventArgs e) => _model.ShowAllBoxes();
 
     private void Cause_LostFocus(object sender, RoutedEventArgs e) => _model.SaveLayout();
 

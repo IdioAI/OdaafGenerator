@@ -4,6 +4,15 @@ public static class FlowNotes
 {
     public sealed record Note(string Purpose, IReadOnlyDictionary<string, string> Parameters, string Documents, string Title = "");
 
+    private static readonly Dictionary<string, Note> Accepted = new(StringComparer.Ordinal);
+
+    public static void ReplaceAccepted(IReadOnlyDictionary<string, Note> notes)
+    {
+        Accepted.Clear();
+        foreach (var (key, note) in notes)
+            Accepted[key] = note;
+    }
+
     private static readonly Dictionary<string, string> Titles = new(StringComparer.Ordinal)
     {
         ["ExecuteSemiAutoAddGroupingInfo"] = "加载配对",
@@ -474,9 +483,13 @@ public static class FlowNotes
 
             if (ByName.TryGetValue(simple, out var byPath))
                 return WithTitle(simple, byPath);
+            if (Accepted.TryGetValue(simple, out var acceptedFromPath))
+                return acceptedFromPath;
         }
 
-        return ByName.TryGetValue(name, out var note) ? WithTitle(name, note) : null;
+        if (ByName.TryGetValue(name, out var note))
+            return WithTitle(name, note);
+        return Accepted.TryGetValue(name, out var accepted) ? accepted : null;
     }
 
     private static Note WithTitle(string key, Note note) =>
