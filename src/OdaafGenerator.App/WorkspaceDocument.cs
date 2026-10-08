@@ -51,6 +51,7 @@ public sealed class WorkspaceDocument : INotifyPropertyChanged
     public bool IsFileMenu => ViewId == ViewIds.FileMenu;
     public bool IsZExtract => ViewId == ViewIds.ZExtract;
     public bool IsFunctionLayer => ViewId == ViewIds.FunctionLayer;
+    public bool IsSystemDna => ViewId == ViewIds.SystemDna;
 
     private bool Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
     {

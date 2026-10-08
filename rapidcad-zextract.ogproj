@@ -9,9 +9,12 @@
   <og:Odaaf href="../OntoLib/BzoxOdaaf/omron/from-code/rapidcad-zextract-xml.odaaf"
            uri="urn:odaaf:code:rapidcad-zextract-xml"
            graphVersion="1.0.0" />
+  <og:Dna href="../OntoLib/BzoxOdaaf/omron/from-code/dna/system-parameters.odaaf"
+         uri="urn:odaaf:code:system-parameters" />
   <og:Contexts default="file-nav">
     <og:Context id="index" name="解析入库" />
     <og:Context id="odaaf-file" name="ODAAF" />
     <og:Context id="file-nav" name="文件菜单" />
+    <og:Context id="system-dna" name="系统 DNA" />
   </og:Contexts>
 </og:GeneratorProject>

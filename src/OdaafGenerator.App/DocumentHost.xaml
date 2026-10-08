@@ -168,6 +168,47 @@
       </DockPanel>
     </DockPanel>
 
+    <ScrollViewer Visibility="{Binding IsSystemDna, Converter={StaticResource BoolVis}}"
+                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="16" DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
+        <TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding DnaHeadline}"/>
+        <TextBlock Margin="0,6,0,16" Foreground="#667085" TextWrapping="Wrap" Text="{Binding DnaPath}"/>
+        <ItemsControl ItemsSource="{Binding DnaGroups}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type core:DnaGroup}">
+              <StackPanel Margin="0,0,0,18">
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Title}"/>
+                <TextBlock Foreground="#667085" Text="{Binding MachineName}"/>
+                <TextBlock Margin="0,2,0,8" TextWrapping="Wrap" Text="{Binding Description}"/>
+                <ItemsControl ItemsSource="{Binding Leaves}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type core:DnaLeaf}">
+                      <Border Margin="0,0,0,8" Padding="10" BorderBrush="#E4E7EC" BorderThickness="1" CornerRadius="6" Background="#F8FAFC">
+                        <StackPanel>
+                          <DockPanel>
+                            <TextBlock DockPanel.Dock="Right" Foreground="#667085" Text="{Binding DataType}"/>
+                            <TextBlock FontWeight="SemiBold" Text="{Binding Title}"/>
+                          </DockPanel>
+                          <TextBlock Margin="0,2,0,0" Foreground="#344054">
+                            <Run Text="{Binding MachineName, Mode=OneWay}"/>
+                            <Run Text="    默认 "/>
+                            <Run Text="{Binding DefaultValue, Mode=OneWay}"/>
+                            <Run Text="    "/>
+                            <Run Text="{Binding Range, Mode=OneWay}"/>
+                          </TextBlock>
+                          <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="#667085" Text="{Binding Description}"/>
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+
     <DockPanel Visibility="{Binding IsClassScatter, Converter={StaticResource BoolVis}}">
       <DockPanel DockPanel.Dock="Top" Margin="12,8,12,4">
         <Button DockPanel.Dock="Right" Content="打开这个簇" Padding="10,2" Click="Cluster_Click">

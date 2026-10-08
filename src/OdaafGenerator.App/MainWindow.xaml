@@ -18,6 +18,7 @@
         <MenuItem Header="退出" Click="Exit_Click"/>
       </MenuItem>
       <MenuItem Header="上下文">
+        <MenuItem Header="系统 DNA" Click="ShowDna_Click"/>
         <MenuItem Header="文件菜单" Click="ShowFileNav_Click"/>
         <MenuItem Header="解析入库" Click="ShowIndex_Click"/>
         <MenuItem Header="ODAAF" Click="ShowOdaaf_Click"/>
@@ -30,6 +31,7 @@
         <MenuItem Header="Z 抽出" Click="ViewZ_Click"/>
         <MenuItem Header="类散图" Click="ViewScatter_Click"/>
         <MenuItem Header="函数层" Click="ViewLayer_Click"/>
+        <MenuItem Header="系统 DNA" Click="ShowDna_Click"/>
         <Separator/>
         <MenuItem Header="本层摘要" Click="Summary_Click"/>
       </MenuItem>
@@ -81,7 +83,7 @@
               <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type core:NavNode}" ItemsSource="{Binding Children}">
                   <StackPanel Orientation="Horizontal" Margin="0,2">
-                    <TextBlock Text="{Binding Title}">
+                    <TextBlock Text="{Binding Label}">
                       <TextBlock.Style>
                         <Style TargetType="TextBlock">
                           <Setter Property="FontWeight" Value="Normal"/>

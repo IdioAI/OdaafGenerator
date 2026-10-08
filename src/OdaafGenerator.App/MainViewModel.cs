@@ -33,6 +33,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private ClassScatterGraph? _scatter;
     private ProjectIndexInfo? _projectIndex;
     private string _contextId = OdaafFileContext.Id;
+    private IReadOnlyList<DnaGroup> _dnaGroups = [];
+    private string _dnaHeadline = "系统 DNA 还没有加载。";
+    private string _dnaPath = "";
     private IReadOnlyList<ProjectEntry> _projects = [];
     private IReadOnlyList<SearchHit> _hits = [];
     private IReadOnlyList<FunctionCard> _menuCards = [];
@@ -187,6 +190,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsIndexContext));
             OnPropertyChanged(nameof(IsOdaafContext));
             OnPropertyChanged(nameof(IsFileNavContext));
+            OnPropertyChanged(nameof(IsSystemDnaContext));
             OnPropertyChanged(nameof(ContextName));
             RefreshContextViews();
             RefreshLine();
@@ -196,12 +200,32 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public bool IsIndexContext => ContextId == IndexContext.Id;
     public bool IsOdaafContext => ContextId == OdaafFileContext.Id;
     public bool IsFileNavContext => ContextId == FileNavContext.Id;
+    public bool IsSystemDnaContext => ContextId == SystemDnaContext.Id;
     public string ContextName => ContextId switch
     {
         IndexContext.Id => "解析入库",
         FileNavContext.Id => FileNavContext.Name,
+        SystemDnaContext.Id => SystemDnaContext.Name,
         _ => "ODAAF"
     };
+
+    public IReadOnlyList<DnaGroup> DnaGroups
+    {
+        get => _dnaGroups;
+        private set => Set(ref _dnaGroups, value);
+    }
+
+    public string DnaHeadline
+    {
+        get => _dnaHeadline;
+        private set => Set(ref _dnaHeadline, value);
+    }
+
+    public string DnaPath
+    {
+        get => _dnaPath;
+        private set => Set(ref _dnaPath, value);
+    }
 
     public IReadOnlyList<NavNode> NavRoots
     {
@@ -297,6 +321,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
             _zCards = _catalog.BuildXmlContext(_layout).ToList();
             _zEdges = XmlScene.Edges.Select(edge => new GraphEdge(edge.From, edge.To)).ToList();
             (_menuCards, _menuEdges) = FileMenu.Build(_catalog, _layout);
+            LoadDna(project);
             OnPropertyChanged(nameof(MenuCards));
             ProjectIndex = ProjectIndexInfo.From(project, LayoutPath, projects.Count, rows.Count);
             _sourceNav = MenuNavTree.Build(_catalog);
@@ -310,8 +335,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             };
             OpenDefaults();
             Status = IsFileNavContext
-                ? $"{project.Name}。左边从文件菜单展开处理函数，右边画这一层的流程图。"
-                : $"{project.Name}。项目 {projects.Count} 个，焦点声明 {rows.Count} 条。";
+                ? $"{project.Name}。左边从文件菜单展开处理函数，右边画这一层的流程图。系统 DNA 在菜单「上下文 → 系统 DNA」。"
+                : $"{project.Name}。项目 {projects.Count} 个，焦点声明 {rows.Count} 条。系统 DNA 在菜单「上下文 → 系统 DNA」。";
         }
         catch (Exception ex)
         {
@@ -324,6 +349,9 @@ public sealed class MainViewModel : INotifyPropertyChanged
             _zCards = [];
             ProjectIndex = null;
             NavRoots = [];
+            DnaGroups = [];
+            DnaHeadline = "系统 DNA 还没有加载。";
+            DnaPath = "";
             _sourceNav = [];
             _activeLayer = null;
             CurrentBrief = null;
@@ -347,6 +375,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public void ShowFileNav() => SwitchContext(FileNavContext.Id);
 
+    public void ShowSystemDna() => SwitchContext(SystemDnaContext.Id);
+
     public void ExpandNav(NavNode? node)
     {
         if (node is null || _catalog is null || _project is null)
@@ -363,26 +393,24 @@ public sealed class MainViewModel : INotifyPropertyChanged
         SelectedNav = node;
         if (node.Kind == NavNode.Function && !node.MainFlow)
         {
-            NavCards =
-            [
-                new FunctionCard
-                {
-                    SyntaxPath = node.SyntaxPath ?? node.Title,
-                    Name = node.Title,
-                    StepLabel = "修饰",
-                    Project = node.Symbol?.Project ?? "",
-                    Signature = node.Symbol?.Signature ?? "",
-                    FilePath = node.Symbol?.FilePath ?? "",
-                    StartLine = node.Symbol?.StartLine ?? 0,
-                    EndLine = node.Symbol?.EndLine ?? 0,
-                    Materials = SignatureParser.Parameters(node.Symbol?.Signature),
-                    OnCanvas = true,
-                    MainFlow = false,
-                    X = 24,
-                    Y = 36
-                }
-            ];
-            FunctionBrief.Apply(NavCards[0]);
+            var modifier = new FunctionCard
+            {
+                SyntaxPath = node.SyntaxPath ?? node.Title,
+                Name = node.Title,
+                StepLabel = "修饰",
+                Project = node.Symbol?.Project ?? "",
+                Signature = node.Symbol?.Signature ?? "",
+                FilePath = node.Symbol?.FilePath ?? "",
+                StartLine = node.Symbol?.StartLine ?? 0,
+                EndLine = node.Symbol?.EndLine ?? 0,
+                Materials = SignatureParser.Parameters(node.Symbol?.Signature),
+                OnCanvas = true,
+                MainFlow = false,
+                X = 24,
+                Y = 36
+            };
+            FunctionBrief.Apply(modifier);
+            NavCards = [modifier];
             NavEdges = [];
             SelectedCard = NavCards[0];
             Status = $"{node.Title} 是修饰，不进入主流程。";
@@ -393,7 +421,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         if (node.Kind == NavNode.Phase)
         {
             var functions = node.Children.Where(child => child.Kind == NavNode.Function).ToList();
-            NavCards = functions.Select((item, index) => new FunctionCard
+            var phaseCards = functions.Select((item, index) => new FunctionCard
             {
                 SyntaxPath = item.SyntaxPath ?? item.Title,
                 Name = item.Title,
@@ -407,10 +435,11 @@ public sealed class MainViewModel : INotifyPropertyChanged
                 OnCanvas = true,
                 MainFlow = node.MainFlow,
                 X = 24,
-                Y = 36 + index * 96
+                Y = 36 + index * 112
             }).ToList();
-            foreach (var card in NavCards)
+            foreach (var card in phaseCards)
                 FunctionBrief.Apply(card);
+            NavCards = phaseCards;
             NavEdges = [];
             SelectedCard = NavCards.FirstOrDefault();
             Status = node.MainFlow
@@ -491,6 +520,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             ContextId = IndexContext.Id;
         if (viewId is ViewIds.FileMenu or ViewIds.ClassScatter or ViewIds.FunctionLayer or ViewIds.ClassCluster)
             ContextId = OdaafFileContext.Id;
+        if (viewId == ViewIds.SystemDna)
+            ContextId = SystemDnaContext.Id;
 
         var existing = Documents.FirstOrDefault(document =>
             document.ContextId == ContextId
@@ -750,6 +781,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
+        if (contextId == SystemDnaContext.Id)
+        {
+            Navigate(ViewIds.SystemDna);
+            Status = DnaGroups.Count == 0
+                ? DnaHeadline
+                : $"{DnaHeadline} 共 {DnaGroups.Sum(group => group.Leaves.Count)} 个参数。";
+            return;
+        }
+
         var current = Documents.LastOrDefault(document => document.ContextId == contextId);
         if (current is not null)
             ActiveDocument = current;
@@ -913,6 +953,28 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
 
         return AppContext.BaseDirectory;
+    }
+
+    private void LoadDna(GeneratorProject project)
+    {
+        DnaPath = project.DnaPath;
+        if (string.IsNullOrWhiteSpace(project.DnaPath))
+        {
+            DnaGroups = [];
+            DnaHeadline = "工程索引没有系统 DNA 文件。";
+            return;
+        }
+
+        if (!File.Exists(project.DnaPath))
+        {
+            DnaGroups = [];
+            DnaHeadline = "系统 DNA 文件不存在。";
+            return;
+        }
+
+        DnaGroups = SystemDna.Load(project.DnaPath);
+        var leaves = DnaGroups.Sum(group => group.Leaves.Count);
+        DnaHeadline = $"系统 DNA：{DnaGroups.Count} 个分组，{leaves} 个参数。";
     }
 
     private void RefreshContextViews() =>

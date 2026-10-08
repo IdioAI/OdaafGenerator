@@ -18,6 +18,8 @@ public sealed class GeneratorProject
     public required string OdaafPath { get; init; }
     public required string OdaafUri { get; init; }
     public required string GraphVersion { get; init; }
+    public required string DnaPath { get; init; }
+    public required string DnaUri { get; init; }
     public required string DefaultContextId { get; init; }
     public required IReadOnlyList<GeneratorContext> Contexts { get; init; }
 
@@ -50,6 +52,8 @@ public sealed class GeneratorProject
         var source = Required(root, "Source", "href");
         var solution = Required(root, "Source", "solution");
         var odaaf = Required(root, "Odaaf", "href");
+        var dna = root.Element(Ns + "Dna");
+        var dnaHref = Attr(dna, "href");
 
         return new GeneratorProject
         {
@@ -62,6 +66,8 @@ public sealed class GeneratorProject
             OdaafPath = Resolve(directory, odaaf),
             OdaafUri = Attr(root.Element(Ns + "Odaaf"), "uri") ?? "",
             GraphVersion = Attr(root.Element(Ns + "Odaaf"), "graphVersion") ?? "",
+            DnaPath = string.IsNullOrWhiteSpace(dnaHref) ? "" : Resolve(directory, dnaHref),
+            DnaUri = Attr(dna, "uri") ?? "",
             DefaultContextId = Attr(root.Element(Ns + "Contexts"), "default") ?? OdaafFileContext.Id,
             Contexts = ReadContexts(root)
         };

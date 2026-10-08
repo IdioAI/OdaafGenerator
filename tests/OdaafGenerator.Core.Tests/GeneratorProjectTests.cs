@@ -19,8 +19,14 @@ public class GeneratorProjectTests
         Assert.True(File.Exists(project.OdaafPath), project.OdaafPath);
         Assert.EndsWith("rapidcad-zextract-xml.odaaf", project.OdaafPath, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(FileNavContext.Id, project.DefaultContextId);
-        Assert.Equal(["index", "odaaf-file", "file-nav"], project.Contexts.Select(context => context.Id));
-        Assert.Equal(["解析入库", "ODAAF", "文件菜单"], project.Contexts.Select(context => context.Name));
+        Assert.Equal(["index", "odaaf-file", "file-nav", "system-dna"], project.Contexts.Select(context => context.Id));
+        Assert.Equal(["解析入库", "ODAAF", "文件菜单", "系统 DNA"], project.Contexts.Select(context => context.Name));
+        Assert.Equal(SystemDna.Uri, project.DnaUri);
+        Assert.True(File.Exists(project.DnaPath), project.DnaPath);
+        var groups = SystemDna.Load(project.DnaPath);
+        Assert.Equal(13, groups.Count);
+        Assert.Equal(56, groups.Sum(group => group.Leaves.Count));
+        Assert.Contains(groups, group => group.Leaves.Any(leaf => leaf.MachineName == "ToolProcessThresholdOfIsPossiblePreDrill" && leaf.DefaultValue == "2.0"));
     }
 
     [Fact]
@@ -47,6 +53,7 @@ public class GeneratorProjectTests
             Assert.Equal(Path.GetFullPath(Path.Combine(root, "onto", "rapidcad-zextract-xml.odaaf")), project.OdaafPath);
             Assert.Equal(OdaafFileContext.Id, project.DefaultContextId);
             Assert.Empty(project.Contexts);
+            Assert.Equal("", project.DnaPath);
         }
         finally
         {

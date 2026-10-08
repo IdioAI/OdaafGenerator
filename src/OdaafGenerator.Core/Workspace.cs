@@ -9,6 +9,7 @@ public static class ViewIds
     public const string ClassScatter = "class-scatter";
     public const string ClassCluster = "class-cluster";
     public const string FunctionLayer = "function-layer";
+    public const string SystemDna = "system-dna";
 }
 
 public sealed record WorkspaceView(string Id, string Title, string ContextId);
@@ -24,7 +25,8 @@ public static class WorkspaceViews
         new(ViewIds.ZExtract, "Z 抽出", OdaafFileContext.Id),
         new(ViewIds.ClassScatter, "类散图", OdaafFileContext.Id),
         new(ViewIds.FunctionLayer, "函数层", OdaafFileContext.Id),
-        new(ViewIds.FileMenu, "菜单导航", FileNavContext.Id)
+        new(ViewIds.FileMenu, "菜单导航", FileNavContext.Id),
+        new(ViewIds.SystemDna, "系统 DNA", SystemDnaContext.Id)
     ];
 
     public static IReadOnlyList<WorkspaceView> For(string contextId) =>
@@ -78,6 +80,7 @@ public sealed class ProjectIndexInfo
                 Row("源码解决方案", "输入", project.SolutionPath),
                 Row("源码目录", "输入", project.SourceRoot, directory: true),
                 Row("同步本体", "输出", project.OdaafPath),
+                Row("系统 DNA", "输入", project.DnaPath),
                 Row("画布布局", "本地输出", layoutPath)
             ]
         };

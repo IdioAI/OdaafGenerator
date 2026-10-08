@@ -36,6 +36,14 @@ public sealed class NavNode
     }
 
     public string Title { get; }
+    public string Label =>
+        Kind == Function && !string.IsNullOrWhiteSpace(Friendly)
+            ? Friendly
+            : Title;
+
+    private string Friendly =>
+        FlowNotes.Find(SyntaxPath, MethodName ?? Title)?.Title ?? "";
+
     public string Kind { get; }
     public string? MethodName { get; }
     public string? SyntaxPath { get; }
@@ -64,17 +72,25 @@ public sealed class NavNode
         return copy;
     }
 
-    public string Hint => Mark ?? Kind switch
+    public string Hint
     {
-        Group => "分组",
-        Menu => "菜单",
-        Phase when MainFlow => "主流程",
-        Phase => "修饰",
-        Function when !MainFlow => "修饰",
-        Function => Symbol is null ? "未对上" : "函数",
-        Empty => "",
-        _ => ""
-    };
+        get
+        {
+            if (Kind == Function && Label != Title)
+                return string.IsNullOrEmpty(Mark) ? Title : $"{Title}  {Mark}";
+            return Mark ?? Kind switch
+            {
+                Group => "分组",
+                Menu => "菜单",
+                Phase when MainFlow => "主流程",
+                Phase => "修饰",
+                Function when !MainFlow => "修饰",
+                Function => Symbol is null ? "未对上" : "函数",
+                Empty => "",
+                _ => ""
+            };
+        }
+    }
 
     public bool CanExpandCalls => Kind == Function && MainFlow && Symbol is not null && !CallsLoaded;
 

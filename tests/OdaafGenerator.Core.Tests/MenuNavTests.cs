@@ -144,6 +144,19 @@ public class MenuNavTests
         Assert.NotNull(Find(byMethod, "参数写入PCB"));
     }
 
+    [Fact]
+    public void FunctionLabel_ShowsFriendlyNameAndKeepsMethodInHint()
+    {
+        var node = new NavNode(
+            "ApplySemiAutoSanitizeAndArchive",
+            NavNode.Function,
+            "ApplySemiAutoSanitizeAndArchive",
+            "BHEditor.ViewModels.MainWindowViewModel.ApplySemiAutoSanitizeAndArchive",
+            mainFlow: true);
+        Assert.Equal("清洗归档", node.Label);
+        Assert.Equal("ApplySemiAutoSanitizeAndArchive", node.Hint);
+    }
+
     private static NavNode? Find(IEnumerable<NavNode> nodes, string title)
     {
         foreach (var node in nodes)

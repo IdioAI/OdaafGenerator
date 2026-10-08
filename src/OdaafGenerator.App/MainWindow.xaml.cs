@@ -57,6 +57,8 @@ public partial class MainWindow : Window
 
     private void ShowFileNav_Click(object sender, RoutedEventArgs e) => _model.ShowFileNav();
 
+    private void ShowDna_Click(object sender, RoutedEventArgs e) => _model.ShowSystemDna();
+
     private void ViewProject_Click(object sender, RoutedEventArgs e) => _model.Navigate(ViewIds.ProjectIndex);
 
     private void ViewBrowse_Click(object sender, RoutedEventArgs e) => _model.Navigate(ViewIds.IndexBrowse);
